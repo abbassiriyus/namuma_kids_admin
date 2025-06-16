@@ -1,0 +1,49 @@
+.adminTable {
+  padding: 24px;
+  width: 100%;
+}
+
+.adminTable__title {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.adminTable__wrapper {
+  overflow-x: auto;
+  border-radius: 8px;
+  background-color: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.adminTable__table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.adminTable__thead {
+  background-color: #f3f4f6;
+}
+
+.adminTable__th {
+  padding: 12px 16px;
+  font-size: 13px;
+  text-align: left;
+  color: #374151;
+  font-weight: 600;
+  text-transform: uppercase;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.adminTable__tbody tr:hover {
+  background-color: #f9fafb;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.adminTable__td {
+  padding: 12px 16px;
+  font-size: 14px;
+  color: #374151;
+  border-bottom: 1px solid #f3f4f6;
+  white-space: nowrap;
+}
