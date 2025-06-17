@@ -1,7 +1,12 @@
+import LayoutComponent from '@/components/LayoutComponent'
 import React from 'react'
 
 export default function davomat() {
   return (
-    <div>davomat</div>
+    <div>
+      <LayoutComponent>
+      davomat
+      </LayoutComponent>
+      </div>
   )
 }

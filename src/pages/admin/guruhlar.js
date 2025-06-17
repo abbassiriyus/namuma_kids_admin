@@ -1,7 +1,12 @@
+import LayoutComponent from '@/components/LayoutComponent'
 import React from 'react'
 
 export default function guruhlar() {
   return (
-    <div>guruhlar</div>
+    <div>
+      <LayoutComponent>
+         guruhlar
+      </LayoutComponent>
+      </div>
   )
 }

@@ -1,15 +1,15 @@
 import Sidebar from '../../components/Sidebar';
 import DashboardChart from '../../components/DashboardChart';
 import styles from '../../styles/Dashboard.module.css';
+import LayoutComponent from '@/components/LayoutComponent';
 
 export default function Dashboard() {
   return (
     <div className={styles.container}>
-      <Sidebar />
-      <main className={styles.main}>
+    <LayoutComponent>
         <h1>Dashboard</h1>
         <DashboardChart />
-      </main>
+     </LayoutComponent>
     </div>
   );
 }

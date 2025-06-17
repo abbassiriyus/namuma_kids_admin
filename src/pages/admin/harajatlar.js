@@ -1,7 +1,10 @@
+import LayoutComponent from '@/components/LayoutComponent'
 import React from 'react'
 
 export default function harajatlar() {
   return (
-    <div>harajatlar</div>
+    <div><LayoutComponent>
+      harajatlar
+      </LayoutComponent></div>
   )
 }

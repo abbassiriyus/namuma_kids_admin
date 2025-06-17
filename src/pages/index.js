@@ -1,8 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/router';
+import axios from 'axios';
 import styles from '../styles/Login.module.css';
+import url from '../host/host'; // Bu yerda sizning backend API bazangiz `url` sifatida eksport qilingan bo'lishi kerak
 
 export default function Login() {
   const [username, setUsername] = useState('');
@@ -10,16 +12,22 @@ export default function Login() {
   const [error, setError] = useState('');
   const router = useRouter();
 
-
-
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    // Foydalanuvchini tekshirish (demo: admin/1234)
-    if (username === 'admin' && password === '1234') {
-      localStorage.setItem('token', 'my_secret_token');
-      router.push('/admin/dashboard');
-    } else {
-      setError("Login yoki parol noto‘g‘ri");
+    try {
+      const response = await axios.post(`${url}/admin/login`, {
+        username,
+        password,
+      });
+
+      if (response.data.token) {
+        localStorage.setItem('token', response.data.token);
+        router.push('/admin/dashboard');
+      } else {
+        setError("Login yoki parol noto‘g‘ri");
+      }
+    } catch (err) {
+      setError("Server bilan bog‘lanishda xatolik: " + (err.response?.data?.message || err.message));
     }
   };
 

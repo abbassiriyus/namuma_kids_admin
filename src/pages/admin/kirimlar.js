@@ -1,7 +1,12 @@
+import LayoutComponent from '@/components/LayoutComponent'
 import React from 'react'
 
 export default function kirimlar() {
   return (
-    <div>kirimlar</div>
+    <div>
+      <LayoutComponent>
+        kirimlar
+      </LayoutComponent>
+    </div>
   )
 }
