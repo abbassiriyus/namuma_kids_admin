@@ -1,0 +1,41 @@
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  margin-bottom: 24px;
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.page-header__title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #1f2937; /* text-gray-800 */
+}
+
+.page-header__button {
+  padding: 10px 20px;
+  background-color: #2563eb; /* bg-blue-600 */
+  color: white;
+  font-size: 16px;
+  font-weight: 500;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.page-header__button:hover {
+  background-color: #1d4ed8; /* hover:bg-blue-700 */
+}
+.totalBox {
+  text-align: right;
+  font-weight: bold;
+  font-size: 18px;
+  margin-top: 12px;
+  margin-right: 10px;
+}

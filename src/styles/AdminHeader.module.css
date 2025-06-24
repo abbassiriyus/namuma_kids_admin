@@ -1,0 +1,29 @@
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 97%;
+  margin-left: 20px;
+  margin-top: 1.5rem;
+}
+
+.header__title {
+  font-size: 24px;
+  font-weight: bold;
+  color: #1a202c;
+}
+
+.header__button {
+  background-color: #2563eb;
+  color: white;
+  font-weight: 500;
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.header__button:hover {
+  background-color: #1e40af;
+}

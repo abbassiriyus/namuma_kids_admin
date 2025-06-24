@@ -1,0 +1,27 @@
+/* styles/Filter.module.css */
+.filterContainer {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 0px;
+  flex-wrap: wrap;
+  margin-left: 20px;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.input {
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  min-width: 150px;
+}
+
+.button {
+  padding: 6px 14px;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-weight: bold;
+  cursor: pointer;
+}

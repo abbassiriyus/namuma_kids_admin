@@ -1,59 +1,126 @@
 .adminTable {
-  padding: 16px;
+  padding: 24px;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  overflow-x: auto;
+  font-family: 'Segoe UI', sans-serif;
+  padding: 10px;
 }
 
 .adminTable__title {
-  font-size: 20px;
-  margin-bottom: 10px;
+  margin-bottom: 16px;
+  font-size: 22px;
+  font-weight: 600;
+  color: #333;
 }
 
 .adminTable__wrapper {
-  /* max-height: 400px; */
-  overflow-y: auto;
-  border: 1px solid #ccc;
-  /* border-radius: 8px; */
+  overflow-x: auto;
 }
 
 .adminTable__table {
   width: 100%;
   border-collapse: collapse;
+  white-space: nowrap;
+  background: #fff;
 }
 
 .adminTable__thead {
-  background-color: #f1f1f1;
-  position: sticky;
-  top: 0;
+  background-color: #f1f5f9;
 }
 
-.adminTable__th,
-.adminTable__td {
-  padding: 8px 12px;
+.adminTable__th {
+  padding: 14px 12px;
   text-align: left;
-  border-bottom: 1px solid #ddd;
+  font-weight: 600;
+  font-size: 14px;
+  color: #334155;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.adminTable__tbody {
+  font-size: 14px;
+}
+
+.adminTable__tr {
+  transition: background 0.2s ease-in-out;
 }
 
 .adminTable__tr:hover {
-  background-color: #f9f9f9;
+  background-color: #f9fafb;
+}
+
+.adminTable__td {
+  padding: 12px;
+  border-bottom: 1px solid #e2e8f0;
+  color: #475569;
+  font-size: 14px;
+  vertical-align: middle;
+  white-space: wrap;
+}
+
+.editBtn,
+.updateBtn,
+.deleteBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  margin-right: 6px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  transition: all 0.2s ease-in-out;
+}
+
+.editBtn:hover {
+  background-color: #eff6ff;
+  color: #2563eb;
+}
+
+.updateBtn:hover {
+  background-color: #fef3c7;
+  color: #b45309;
+}
+
+.deleteBtn:hover {
+  background-color: #fee2e2;
+  color: #dc2626;
+}
+
+.editBtn {
+  color: #2563eb;
+}
+.updateBtn {
+  color: #b45309;
+}
+.deleteBtn {
+  color: #dc2626;
 }
 
 .pagination {
+  margin-top: 20px;
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-top: 12px;
-  gap: 10px;
+  gap: 12px;
 }
 
 .pagination button {
   padding: 6px 12px;
-  background-color: #0066ff;
-  color: white;
-  border: none;
+  font-size: 14px;
+  background-color: #f1f5f9;
+  border: 1px solid #cbd5e1;
   border-radius: 6px;
   cursor: pointer;
+  transition: background 0.2s ease-in-out;
 }
 
-.pagination button:disabled {
-  background-color: #ccc;
-  cursor: not-allowed;
+.pagination button:hover {
+  background-color: #e2e8f0;
+}
+
+.pagination span {
+  font-weight: 500;
+  color: #334155;
 }

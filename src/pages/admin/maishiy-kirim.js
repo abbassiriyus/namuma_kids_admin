@@ -10,30 +10,17 @@ import styles from '@/styles/ChiqimlarPage.module.css';
 import AdminHeader from '@/components/AdminHeader';
 import ChiqimFilter from '@/components/ChiqimFilter';
 import {
-  Document,
-  Packer,
-  Paragraph,
-  Table,
-  TableRow,
-  TableCell,
-  TextRun,
-  WidthType,
-  AlignmentType,
-  ShadingType
+  Document, Packer, Paragraph, Table, TableRow, TableCell,
+  TextRun, WidthType, AlignmentType, ShadingType
 } from 'docx';
 import { saveAs } from 'file-saver';
 
-export default function KirimlarPage() {
+export default function MaishiyKirimPage() {
   const [data, setData] = useState([]);
   const [products, setProducts] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
-
-  const [filter, setFilter] = useState({
-    startDate: '',
-    endDate: '',
-    productId: ''
-  });
+  const [filter, setFilter] = useState({ startDate: '', endDate: '', productId: '' });
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
   const authHeader = { headers: { Authorization: `Bearer ${token}` } };
@@ -55,9 +42,9 @@ export default function KirimlarPage() {
       if (filter.endDate) params.append('end', filter.endDate);
       if (filter.productId) params.append('product', filter.productId);
 
-      const [takticRes, productsRes] = await Promise.all([
-        axios.get(`${url}/sklad_product_taktic?${params.toString()}`, authHeader),
-        axios.get(`${url}/sklad_product`, authHeader),
+      const [kirimRes, productsRes] = await Promise.all([
+        axios.get(`${url}/kirim_maishiy?${params.toString()}`, authHeader),
+        axios.get(`${url}/sklad_maishiy`, authHeader)
       ]);
 
       const productsMap = {};
@@ -65,21 +52,73 @@ export default function KirimlarPage() {
         productsMap[p.id] = { nomi: p.nomi, hajm_birlik: p.hajm_birlik };
       });
 
-      const enrichedData = takticRes.data.map(item => {
-        const narx = item.narx || 0;
-        const hajm = item.hajm || 0;
-        return {
-          ...item,
-          product_nomi: productsMap[item.sklad_product_id]?.nomi || 'Noma’lum',
-          hajm_birlik: productsMap[item.sklad_product_id]?.hajm_birlik || '',
-          summa: narx * hajm
-        };
-      });
+      const enrichedData = kirimRes.data.map(item => ({
+        ...item,
+        product_nomi: productsMap[item.sklad_product_id]?.nomi || 'Noma’lum',
+        hajm_birlik: productsMap[item.sklad_product_id]?.hajm_birlik || '',
+        summa: (item.hajm || 0) * (item.narx || 0)
+      }));
 
       setData(enrichedData);
       setProducts(productsRes.data);
     } catch (err) {
       console.error("Filterlashda xatolik:", err);
+    }
+  };
+
+  const fetchData = async () => {
+    try {
+      const [kirimRes, productsRes] = await Promise.all([
+        axios.get(`${url}/kirim_maishiy`, authHeader),
+        axios.get(`${url}/sklad_maishiy`, authHeader)
+      ]);
+
+      const productsMap = {};
+      productsRes.data.forEach(p => {
+        productsMap[p.id] = { nomi: p.nomi, hajm_birlik: p.hajm_birlik };
+      });
+
+      const enrichedData = kirimRes.data.map(item => ({
+        ...item,
+        product_nomi: productsMap[item.sklad_product_id]?.nomi || 'Noma’lum',
+        hajm_birlik: productsMap[item.sklad_product_id]?.hajm_birlik || '',
+        summa: (item.hajm || 0) * (item.narx || 0)
+      }));
+
+      setData(enrichedData);
+      setProducts(productsRes.data);
+    } catch (err) {
+      console.error("Xatolik:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const handleDelete = async (id) => {
+    try {
+      await axios.delete(`${url}/kirim_maishiy/${id}`, authHeader);
+      fetchData();
+    } catch (err) {
+      console.error("O'chirishda xatolik:", err);
+    }
+  };
+
+  const handleSave = async (form) => {
+    try {
+      if (editingItem) {
+        await axios.put(`${url}/kirim_maishiy/${editingItem.id}`, form, authHeader);
+      } else {
+        if (Array.isArray(form)) {
+          await Promise.all(form.map(row => axios.post(`${url}/kirim_maishiy`, row, authHeader)));
+        } else {
+          await axios.post(`${url}/kirim_maishiy`, form, authHeader);
+        }
+      }
+      fetchData();
+    } catch (err) {
+      console.error("Saqlashda xatolik:", err);
     }
   };
 
@@ -93,17 +132,8 @@ export default function KirimlarPage() {
       new TableCell({
         width: { size: width, type: WidthType.DXA },
         verticalAlign: 'center',
-        children: [
-          new Paragraph({
-            alignment: align,
-            children: [new TextRun({ text, bold })],
-          }),
-        ],
-        shading: {
-          fill: 'ffffff',
-          type: ShadingType.CLEAR,
-          color: '000000',
-        },
+        children: [new Paragraph({ alignment: align, children: [new TextRun({ text, bold })] })],
+        shading: { fill: 'ffffff', type: ShadingType.CLEAR, color: '000000' },
       });
 
     const headerRow = new TableRow({
@@ -111,17 +141,8 @@ export default function KirimlarPage() {
         new TableCell({
           width: { size: columnWidths[i], type: WidthType.DXA },
           verticalAlign: 'center',
-          shading: {
-            fill: 'f0f0f0',
-            type: ShadingType.CLEAR,
-            color: '000000',
-          },
-          children: [
-            new Paragraph({
-              alignment: AlignmentType.CENTER,
-              children: [new TextRun({ text: text.toUpperCase(), bold: true })],
-            }),
-          ],
+          shading: { fill: 'f0f0f0', type: ShadingType.CLEAR, color: '000000' },
+          children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: text.toUpperCase(), bold: true })] })]
         })
       ),
     });
@@ -137,7 +158,7 @@ export default function KirimlarPage() {
           createCell((item.summa || 0).toLocaleString(), columnWidths[5]),
           createCell(item.description || '', columnWidths[6]),
           createCell(item.created_at?.slice(0, 10) || '', columnWidths[7]),
-        ],
+        ]
       })
     );
 
@@ -153,18 +174,14 @@ export default function KirimlarPage() {
         createCell(totalSumma.toLocaleString() + " so'm", columnWidths[5], AlignmentType.CENTER, true),
         createCell('', columnWidths[6]),
         createCell('', columnWidths[7]),
-      ],
+      ]
     });
 
     const doc = new Document({
       sections: [
         {
           children: [
-            new Paragraph({
-              text: 'Kirimlar ro‘yxati',
-              heading: 'Heading1',
-              alignment: AlignmentType.CENTER,
-            }),
+            new Paragraph({ text: 'Maishiy Kirimlar', heading: 'Heading1', alignment: AlignmentType.CENTER }),
             new Paragraph({ text: '' }),
             new Table({
               rows: [headerRow, ...bodyRows, totalRow],
@@ -176,73 +193,13 @@ export default function KirimlarPage() {
     });
 
     Packer.toBlob(doc).then(blob => {
-      saveAs(blob, 'kirimlar.docx');
+      saveAs(blob, 'maishiy_kirimlar.docx');
     });
   };
 
-  const fetchData = async () => {
-    try {
-      const [takticRes, productsRes] = await Promise.all([
-        axios.get(`${url}/sklad_product_taktic`, authHeader),
-        axios.get(`${url}/sklad_product`, authHeader)
-      ]);
-
-      const productsMap = {};
-      productsRes.data.forEach(p => {
-        productsMap[p.id] = { nomi: p.nomi, hajm_birlik: p.hajm_birlik };
-      });
-
-      const enrichedData = takticRes.data.map(item => {
-        const narx = item.narx || 0;
-        const hajm = item.hajm || 0;
-        return {
-          ...item,
-          product_nomi: productsMap[item.sklad_product_id]?.nomi || 'Noma’lum',
-          hajm_birlik: productsMap[item.sklad_product_id]?.hajm_birlik || '',
-          summa: narx * hajm
-        };
-      });
-
-      setData(enrichedData);
-      setProducts(productsRes.data);
-    } catch (err) {
-      console.error("Xatolik:", err);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const handleDelete = async (id) => {
-    try {
-      await axios.delete(`${url}/sklad_product_taktic/${id}`, authHeader);
-      fetchData();
-    } catch (err) {
-      console.error("O'chirishda xatolik:", err);
-    }
-  };
-
-const handleSave = async (form) => {
-  try {
-    if (editingItem) {
-      // ✏️ PUT: mavjud kirimni yangilash
-      await axios.put(`${url}/sklad_product_taktic/${editingItem.id}`, form, authHeader);
-    } else {
-      // ➕ POST: yangi kirim
-      await axios.post(`${url}/sklad_product_taktic`, form, authHeader);
-    }
-    fetchData();
-    setEditingItem(null);
-  } catch (err) {
-    console.error("Saqlashda xatolik:", err);
-  }
-};
-
-
   return (
     <LayoutComponent>
-      <AdminHeader title="Kirimlar" onCreate={() => setModalOpen(true)} />
+      <AdminHeader title="Maishiy Kirimlar" onCreate={() => setModalOpen(true)} />
 
       <ChiqimFilter
         filter={{ ...filter, products }}
@@ -252,7 +209,7 @@ const handleSave = async (form) => {
       />
 
       <AdminTable
-        title="Mahsulot kirimlari"
+        title="Maishiy mahsulot kirimlari"
         columns={['id', 'product_nomi', 'hajm', 'hajm_birlik', 'narx', 'summa', 'description', 'created_at']}
         columnTitles={{
           id: 'ID',

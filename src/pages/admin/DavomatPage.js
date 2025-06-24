@@ -4,11 +4,10 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import url from '@/host/host';
 import LayoutComponent from '@/components/LayoutComponent';
-import AdminTable from '@/components/AdminTable';
 import DavomatModal from '@/components/DavomatModal';
 import styles from '@/styles/DavomatPage.module.css';
 
-export default function JurnalPage() {
+export default function DavomatPage() {
   const [month, setMonth] = useState(() => new Date().toISOString().slice(0, 7));
   const [bolalar, setBolalar] = useState([]);
   const [filteredBolalar, setFilteredBolalar] = useState([]);
@@ -16,19 +15,11 @@ export default function JurnalPage() {
   const [davomatlar, setDavomatlar] = useState([]);
   const [guruhlar, setGuruhlar] = useState([]);
   const [selectedGuruh, setSelectedGuruh] = useState('');
-  const [newSana, setNewSana] = useState('');
-  const [newMavzu, setNewMavzu] = useState('');
-  const [editId, setEditId] = useState(null);
   const [selected, setSelected] = useState(null);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
   const authHeader = { headers: { Authorization: `Bearer ${token}` } };
-
-  const fetchBolalar = async () => {
-    const res = await axios.get(`${url}/bola?is_active=true`, authHeader);
-    setBolalar(res.data);
-    setFilteredBolalar(res.data);
-  };
 
   const fetchGuruhlar = async () => {
     const res = await axios.get(`${url}/guruh`, authHeader);
@@ -48,40 +39,41 @@ export default function JurnalPage() {
     setDavomatlar(res.data);
   };
 
-  const handleAddOrUpdate = async () => {
-    if (!newSana || !newMavzu) return;
+  const fetchBolalar = async (selectedMonth) => {
+    try {
+      const [bolalarRes, davomatRes, darsSanaRes] = await Promise.all([
+        axios.get(`${url}/bola`, authHeader),
+        axios.get(`${url}/bola_kun`, authHeader),
+        axios.get(`${url}/darssana`, authHeader),
+      ]);
 
-    const originalDate = new Date(newSana);
-    originalDate.setDate(originalDate.getDate() + 1);
-    const adjustedDate = originalDate.toISOString().slice(0, 10);
+      const allBolalar = bolalarRes.data;
+      const allDavomat = davomatRes.data;
+      const allDarsSana = darsSanaRes.data;
 
-    const payload = { sana: adjustedDate, mavzu: newMavzu };
-    const apiUrl = editId ? `${url}/darssana/${editId}` : `${url}/darssana`;
+      const thisMonthDarsIds = allDarsSana
+        .filter(d => d.sana.startsWith(selectedMonth))
+        .map(d => d.id);
 
-    await axios[editId ? 'put' : 'post'](apiUrl, payload, authHeader);
+      const monthBolaIds = allDavomat
+        .filter(bk => thisMonthDarsIds.includes(bk.darssana_id))
+        .map(bk => bk.bola_id);
 
-    setNewSana('');
-    setNewMavzu('');
-    setEditId(null);
-    fetchDarsKunlar();
-  };
+      const visibleBolalar = allBolalar.filter(bola =>
+        bola.is_active || monthBolaIds.includes(bola.id)
+      );
 
-  const handleEdit = (d) => {
-    setNewSana(d.sana.slice(0, 10));
-    setNewMavzu(d.mavzu);
-    setEditId(d.id);
-  };
-
-  const handleDelete = async (id) => {
-    if (!confirm("Rostdan ham o‘chirmoqchimisiz?")) return;
-    await axios.delete(`${url}/darssana/${id}`, authHeader);
-    fetchDarsKunlar();
+      setBolalar(visibleBolalar);
+      setFilteredBolalar(visibleBolalar);
+    } catch (err) {
+      console.error('Xatolik bolalarni olishda:', err);
+    }
   };
 
   const handleGuruhChange = (e) => {
     const selectedValue = e.target.value;
     setSelectedGuruh(selectedValue);
-    
+
     if (selectedValue) {
       const filtered = bolalar.filter(bola => bola.guruh_id == selectedValue);
       setFilteredBolalar(filtered);
@@ -91,6 +83,7 @@ export default function JurnalPage() {
   };
 
   const openModal = (bola, dars) => {
+    setErrorMessage('');
     setSelected({ bola, dars });
   };
 
@@ -98,42 +91,60 @@ export default function JurnalPage() {
     if (!selected) return;
 
     const { bola, dars } = selected;
-    const existing = davomatlar.find(d => d.bola_id === bola.id && d.darssana_id === dars.id);
+    const existing = davomatlar.find(d => d.bola_id === bola.id && d.darssana_id === d.id);
 
-    const payload = {
-      bola_id: bola.id,
-      darssana_id: dars.id,
-      holati
-    };
+    const payload = { bola_id: bola.id, darssana_id: dars.id, holati };
     const endpoint = existing ? `${url}/bola_kun/${existing.id}` : `${url}/bola_kun`;
     const method = existing ? 'put' : 'post';
 
-    await axios[method](endpoint, payload, authHeader);
-    await fetchDavomatlar();
-    setSelected(null);
+    try {
+      setErrorMessage('');
+      await axios[method](endpoint, payload, authHeader);
+      await fetchDavomatlar();
+      setSelected(null);
+    } catch (err) {
+      if (err.response?.status === 403) {
+        setErrorMessage("Bunday amalni bajarib bo‘lmaydi");
+      } else {
+        console.error('Xatolik:', err);
+      }
+    }
   };
 
   useEffect(() => {
     fetchGuruhlar();
-    fetchBolalar();
     fetchDavomatlar();
   }, []);
 
   useEffect(() => {
     fetchDarsKunlar();
+    fetchBolalar(month);
   }, [month]);
+
+  // ❗️ error chiqqan paytda modalni yopish
+  useEffect(() => {
+    if (errorMessage) setSelected(null);
+  }, [errorMessage]);
 
   return (
     <LayoutComponent>
       <div className={styles.header}>
-        <h2 className={styles.title}>Bog‘cha Dars Kunlari Jurnali</h2>
+        <h2 className={styles.title}>Bog‘cha Dars Kunlari Davomat</h2>
         <input
           type="month"
           value={month}
-          onChange={e => setMonth(e.target.value)}
+          onChange={(e) => {
+            const newMonth = e.target.value;
+            setMonth(newMonth);
+            fetchBolalar(newMonth);
+          }}
           className={styles.monthInput}
         />
-        <select value={selectedGuruh} onChange={handleGuruhChange} className={styles.select}>
+        <select
+          value={selectedGuruh}
+          onChange={handleGuruhChange}
+          className={styles.select}
+        >
           <option value="">Barcha guruhlar</option>
           {guruhlar.map(guruh => (
             <option key={guruh.id} value={guruh.id}>{guruh.name}</option>
@@ -145,6 +156,7 @@ export default function JurnalPage() {
         <table className={styles.table}>
           <thead>
             <tr>
+              <th>№</th>
               <th>Ism Familiya</th>
               {darsKunlar.map(d => (
                 <th key={d.id}>{d.sana.slice(8, 10)}</th>
@@ -154,16 +166,18 @@ export default function JurnalPage() {
             </tr>
           </thead>
           <tbody>
-            {filteredBolalar.map(bola => {
-              const bolaDavomat = davomatlar.filter(v =>
-                v.bola_id == bola.id &&
-                darsKunlar.some(d => d.id === v.darssana_id)
+            {filteredBolalar.map((bola, index) => {
+              const bolaDavomat = davomatlar.filter(
+                v => v.bola_id === bola.id &&
+                     darsKunlar.some(d => d.id === v.darssana_id)
               );
+
               const bor = bolaDavomat.filter(v => v.holati === 1).length;
               const yoq = bolaDavomat.filter(v => v.holati === 2).length;
 
               return (
                 <tr key={bola.id}>
+                  <td style={{ textAlign: 'center' }}>{index + 1}</td>
                   <td>{bola.username}</td>
                   {darsKunlar.map(d => {
                     const entry = davomatlar.find(
@@ -189,42 +203,6 @@ export default function JurnalPage() {
         </table>
       </div>
 
-      <div className={styles.form}>
-        <h3>{editId ? "Darsni tahrirlash" : "Yangi dars qo‘shish"}</h3>
-        <input
-          type="date"
-          value={newSana}
-          onChange={e => setNewSana(e.target.value)}
-        />
-        <input
-          type="text"
-          value={newMavzu}
-          onChange={e => setNewMavzu(e.target.value)}
-          placeholder="Mavzu nomi"
-        />
-        <button onClick={handleAddOrUpdate}>
-          {editId ? "Yangilash" : "Qo‘shish"}
-        </button>
-        {editId && (
-          <button onClick={() => {
-            setEditId(null);
-            setNewSana('');
-            setNewMavzu('');
-          }}>
-            Bekor qilish
-          </button>
-        )}
-      </div>
-
-      <AdminTable
-        title="Darslar ro‘yxati"
-        columns={['sana', 'mavzu']}
-        columnTitles={{ sana: 'Sana', mavzu: 'Mavzu' }}
-        data={darsKunlar}
-        onDelete={handleDelete}
-        onEdit={handleEdit}
-      />
-
       {selected && (
         <DavomatModal
           bola={selected.bola}
@@ -232,6 +210,15 @@ export default function JurnalPage() {
           onClose={() => setSelected(null)}
           onSelect={handleDavomatSelect}
         />
+      )}
+
+      {errorMessage && (
+        <div className={styles.errorModal}>
+          <div className={styles.errorContent}>
+            <p>{errorMessage}</p>
+            <button onClick={() => setErrorMessage('')}>Yopish</button>
+          </div>
+        </div>
       )}
     </LayoutComponent>
   );
