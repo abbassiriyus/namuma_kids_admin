@@ -1,3 +1,5 @@
+/* Login.module.css */
+
 .bg {
   height: 100vh;
   background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
@@ -8,19 +10,28 @@
   overflow: hidden;
 }
 
-.overlay::before {
-  content: '';
+/* Overlay animatsiyasi */
+.overlay {
   position: absolute;
-  width: 150%;
-  height: 150%;
-  background: repeating-radial-gradient(circle, rgba(255,255,255,0.03) 0, transparent 20px);
-  animation: move 20s linear infinite;
+  top: 0;
+  right: 0;
+
+  width: 1200px;
+  height: 1200px;
+  background: repeating-radial-gradient(circle, rgba(255, 255, 255, 0.03) 0px, transparent 20px);
+  animation: rotate 30s linear infinite;
   z-index: 0;
+  pointer-events: none;
+  opacity: 0.7;
 }
 
-@keyframes move {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+@keyframes rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .loginBox {
@@ -31,7 +42,7 @@
   border-radius: 16px;
   padding: 40px;
   width: 320px;
-  box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
   display: flex;
   flex-direction: column;
   color: white;
@@ -47,7 +58,7 @@
   margin-bottom: 15px;
   border: none;
   border-radius: 8px;
-  background: rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.1);
   color: white;
   font-size: 16px;
 }
@@ -74,4 +85,12 @@
   color: #f87171;
   text-align: center;
   margin-bottom: 10px;
+}
+
+/* Mobil qurilmalar uchun responsivlik */
+@media (max-width: 400px) {
+  .loginBox {
+    width: 90%;
+    padding: 20px;
+  }
 }

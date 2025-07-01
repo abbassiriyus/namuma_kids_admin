@@ -1,0 +1,77 @@
+.calendar {
+  padding: 20px;
+}
+
+.calendar__top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.calendar__label {
+  font-weight: 500;
+}
+
+.calendar__monthInput {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+}
+
+.calendar__title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 16px;
+}
+
+.calendar__grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 12px;
+}
+
+.calendar__day {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 10px;
+  text-align: center;
+  background-color: #f9f9f9;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: background-color 0.2s ease;
+}
+
+.calendar__day:hover {
+  background-color: #f0f0f0;
+}
+
+.calendar__date {
+  font-size: 0.9rem;
+  margin-bottom: 8px;
+}
+
+.calendar__checkbox {
+  transform: scale(1.2);
+  cursor: pointer;
+}
+
+.calendar__autofillBtn {
+  padding: 8px 16px;
+  background-color: #4CAF50;
+  color: white;
+  font-weight: bold;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-left: 16px;
+  transition: background 0.3s;
+}
+
+.calendar__autofillBtn:hover {
+  background-color: #45a049;
+}
+
+.calendar__sunday {
+  background-color: #cc8181; /* qizg‘ish fon */
+}

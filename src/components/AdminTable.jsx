@@ -3,7 +3,15 @@
 import { useState } from 'react';
 import styles from '../styles/AdminTable.module.css';
 
-export default function AdminTable({ title, columns, columnTitles = {}, data, onDelete, onEdit }) {
+export default function AdminTable({
+  title,
+  columns,
+  columnTitles = {},
+  data,
+  onDelete,
+  onEdit,
+  customRenderers = {}  // ✅ Yangi prop: ustunlar uchun maxsus ko‘rinish
+}) {
   const itemsPerPage = 10;
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -19,13 +27,11 @@ export default function AdminTable({ title, columns, columnTitles = {}, data, on
 
   return (
     <div className={styles.adminTable}>
-      {/* Jadval sarlavhasi */}
-      {title && <h2 className={styles.adminTable__title}>{title}</h2>}
-
       <div className={styles.adminTable__wrapper}>
         <table className={styles.adminTable__table}>
           <thead className={styles.adminTable__thead}>
             <tr>
+              <th className={styles.adminTable__th}>№</th>
               {columns.map((col, idx) => (
                 <th key={idx} className={styles.adminTable__th}>
                   {columnTitles[col] || col}
@@ -37,7 +43,19 @@ export default function AdminTable({ title, columns, columnTitles = {}, data, on
           <tbody className={styles.adminTable__tbody}>
             {currentData.map((row, i) => (
               <tr key={i} className={styles.adminTable__tr}>
+                <td className={styles.adminTable__td}>
+                  {(startIndex + i + 1).toString()}
+                </td>
                 {columns.map((col, j) => {
+                  // ✅ Custom renderer ishlatilsa, uni chiqarish
+                  if (customRenderers[col]) {
+                    return (
+                      <td key={j} className={styles.adminTable__td}>
+                        {customRenderers[col](row)}
+                      </td>
+                    );
+                  }
+
                   let value = row[col];
 
                   // Sana ustunini formatlash

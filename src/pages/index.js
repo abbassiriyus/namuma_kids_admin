@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import axios from 'axios';
-import styles from '../styles/Login.module.css';
-import url from '../host/host'; // Bu yerda sizning backend API bazangiz `url` sifatida eksport qilingan bo'lishi kerak
+import styles from '../styles/Login.module.css'; // agar css yo'q bo‘lsa, bu qatorni olib tashlang
+import url from '../host/host'; // bu sizning backend API bazangiz URL
 
 export default function Login() {
   const [username, setUsername] = useState('');
@@ -20,9 +20,20 @@ export default function Login() {
         password,
       });
 
-      if (response.data.token) {
-        localStorage.setItem('token', response.data.token);
-        router.push('/admin/dashboard');
+      const { token, admin } = response.data;
+      const type = admin.type;
+
+      if (token) {
+        localStorage.setItem('token', token);
+        localStorage.setItem('type', type);
+
+        if (type === 1) {
+          router.push('/admin/dashboard');
+        } else if (type === 2) {
+          router.push('/tarbiyachi/davomat');
+        } else {
+          setError("Nomaʼlum foydalanuvchi turi");
+        }
       } else {
         setError("Login yoki parol noto‘g‘ri");
       }
@@ -33,6 +44,7 @@ export default function Login() {
 
   return (
     <div className={styles.bg}>
+      <div className={styles.overlay}></div>
       <form onSubmit={handleLogin} className={styles.loginBox}>
         <h2>Admin Login</h2>
         {error && <p className={styles.error}>{error}</p>}

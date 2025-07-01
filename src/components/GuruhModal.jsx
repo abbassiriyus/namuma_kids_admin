@@ -16,7 +16,7 @@ export default function GuruhModal({ guruh, onClose, onSave, xodimlar = [] }) {
   const handleSubmit = () => {
     const validData = {
       ...formData,
-      xodim_id: Number(xodimlar.find(x => x.fish === formData.xodim_id)?.id || formData.xodim_id)
+      xodim_id: Number(xodimlar.find(x => x.id === formData.xodim_id)?.id || formData.xodim_id)
     };
     onSave(validData);
   };
@@ -37,17 +37,18 @@ export default function GuruhModal({ guruh, onClose, onSave, xodimlar = [] }) {
             onChange={handleChange}
           />
 
-          <select
-            className={styles.input}
-            name="xodim_id"
-            value={formData.xodim_id || ''}
-            onChange={handleChange}
-          >
-            <option value="">Tarbiyachi tanlang</option>
-            {xodimlar.map((x) => (
-              <option key={x.id} value={x.fish}>{x.fish}</option>
-            ))}
-          </select>
+         <select
+  className={styles.input}
+  name="xodim_id"
+  value={formData.xodim_id || ''}
+  onChange={handleChange}
+>
+  <option value="">Tarbiyachi tanlang</option>
+  {xodimlar.map((x) => (
+    <option key={x.id} value={x.id}>{x.name}</option>
+  ))}
+</select>
+
         </div>
 
         <div className={styles.modal__buttons}>

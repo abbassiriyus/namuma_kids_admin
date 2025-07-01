@@ -5,7 +5,6 @@ import axios from 'axios';
 import url from '@/host/host';
 import LayoutComponent from '@/components/LayoutComponent';
 import AdminTable from '@/components/AdminTable';
-import DavomatModal from '@/components/DavomatModal';
 import styles from '@/styles/DavomatPage.module.css';
 
 export default function JurnalPage() {
@@ -19,7 +18,6 @@ export default function JurnalPage() {
   const [newSana, setNewSana] = useState('');
   const [newMavzu, setNewMavzu] = useState('');
   const [editId, setEditId] = useState(null);
-  const [selected, setSelected] = useState(null);
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
   const authHeader = { headers: { Authorization: `Bearer ${token}` } };
@@ -36,7 +34,7 @@ export default function JurnalPage() {
   };
 
   const fetchDarsKunlar = async () => {
-    const res = await axios.get(`${url}/darssana?month=${month}`, authHeader);
+    const res = await axios.get(`${url}/bola_kuni_all?month=${month}`, authHeader);
     const sorted = res.data
       .filter(d => d.sana.startsWith(month))
       .sort((a, b) => new Date(a.sana) - new Date(b.sana));
@@ -56,7 +54,7 @@ export default function JurnalPage() {
     const adjustedDate = originalDate.toISOString().slice(0, 10);
 
     const payload = { sana: adjustedDate, mavzu: newMavzu };
-    const apiUrl = editId ? `${url}/darssana/${editId}` : `${url}/darssana`;
+    const apiUrl = editId ? `${url}/bola_kuni_all/${editId}` : `${url}/bola_kuni_all`;
 
     await axios[editId ? 'put' : 'post'](apiUrl, payload, authHeader);
 
@@ -74,7 +72,7 @@ export default function JurnalPage() {
 
   const handleDelete = async (id) => {
     if (!confirm("Rostdan ham o‘chirmoqchimisiz?")) return;
-    await axios.delete(`${url}/darssana/${id}`, authHeader);
+    await axios.delete(`${url}/bola_kuni_all/${id}`, authHeader);
     fetchDarsKunlar();
   };
 
@@ -90,27 +88,21 @@ export default function JurnalPage() {
     }
   };
 
-  const openModal = (bola, dars) => {
-    setSelected({ bola, dars });
-  };
-
-  const handleDavomatSelect = async (holati) => {
-    if (!selected) return;
-
-    const { bola, dars } = selected;
+  const handleCheckboxChange = async (bola, dars) => {
     const existing = davomatlar.find(d => d.bola_id === bola.id && d.darssana_id === dars.id);
+    const holati = existing?.holati === 1 ? 2 : 1;
 
     const payload = {
       bola_id: bola.id,
       darssana_id: dars.id,
       holati
     };
+
     const endpoint = existing ? `${url}/bola_kun/${existing.id}` : `${url}/bola_kun`;
     const method = existing ? 'put' : 'post';
 
     await axios[method](endpoint, payload, authHeader);
     await fetchDavomatlar();
-    setSelected(null);
   };
 
   useEffect(() => {
@@ -125,20 +117,50 @@ export default function JurnalPage() {
 
   return (
     <LayoutComponent>
-      <div className={styles.header}>
-        <h2 className={styles.title}>Bog‘cha Dars Kunlari Jurnali</h2>
-        <input
-          type="month"
-          value={month}
-          onChange={e => setMonth(e.target.value)}
-          className={styles.monthInput}
-        />
-        <select value={selectedGuruh} onChange={handleGuruhChange} className={styles.select}>
-          <option value="">Barcha guruhlar</option>
-          {guruhlar.map(guruh => (
-            <option key={guruh.id} value={guruh.id}>{guruh.name}</option>
-          ))}
-        </select>
+      <div style={{ display: 'flex', gap: '20px', marginBottom: '20px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+        <div style={{ flexGrow: 1 }}>
+          <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#333' }}>
+            Bog‘cha Dars Kunlari Jurnali
+          </h2>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', minWidth: '160px' }}>
+          <label style={{ marginBottom: '6px', fontWeight: '600', color: '#555' }}>Oy tanlang:</label>
+          <input
+            type="month"
+            value={month}
+            onChange={e => setMonth(e.target.value)}
+            style={{
+              padding: '8px 12px',
+              borderRadius: '6px',
+              border: '1.5px solid #ccc',
+              fontSize: '16px',
+              outline: 'none',
+              backgroundColor: '#fff'
+            }}
+          />
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', minWidth: '180px' }}>
+          <label style={{ marginBottom: '6px', fontWeight: '600', color: '#555' }}>Guruh bo‘yicha filter:</label>
+          <select
+            value={selectedGuruh}
+            onChange={handleGuruhChange}
+            style={{
+              padding: '8px 12px',
+              borderRadius: '6px',
+              border: '1.5px solid #ccc',
+              fontSize: '16px',
+              cursor: 'pointer',
+              backgroundColor: '#fff'
+            }}
+          >
+            <option value="">Barchasi</option>
+            {guruhlar.map(guruh => (
+              <option key={guruh.id} value={guruh.id}>{guruh.name}</option>
+            ))}
+          </select>
+        </div>
       </div>
 
       <div className={styles.tableWrapper}>
@@ -169,14 +191,15 @@ export default function JurnalPage() {
                     const entry = davomatlar.find(
                       v => v.bola_id === bola.id && v.darssana_id === d.id
                     );
-                    const mark = entry?.holati === 1 ? '✅' : entry?.holati === 2 ? '❌' : '';
+                    const checked = entry?.holati === 1;
+
                     return (
-                      <td
-                        key={d.id}
-                        style={{ cursor: 'pointer', textAlign: 'center' }}
-                        onClick={() => openModal(bola, d)}
-                      >
-                        {mark}
+                      <td key={d.id} style={{ textAlign: 'center' }}>
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => handleCheckboxChange(bola, d)}
+                        />
                       </td>
                     );
                   })}
@@ -224,15 +247,6 @@ export default function JurnalPage() {
         onDelete={handleDelete}
         onEdit={handleEdit}
       />
-
-      {selected && (
-        <DavomatModal
-          bola={selected.bola}
-          sana={selected.dars.sana}
-          onClose={() => setSelected(null)}
-          onSelect={handleDavomatSelect}
-        />
-      )}
     </LayoutComponent>
   );
 }

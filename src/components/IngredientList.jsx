@@ -6,12 +6,14 @@ import url from '@/host/host';
 import { Plus, Trash2 } from 'lucide-react';
 import IngredientModal from '@/components/IngredientModal';
 import styles from '@/styles/IngredientList.module.css';
+import UseTaomModal from './UseTaomModal';
 
 export default function IngredientList({ taomId }) {
   const [ingredients, setIngredients] = useState([]);
   const [open, setOpen] = useState(false);
   const [selectedIngredient, setSelectedIngredient] = useState(null);
 
+const [openUseModal, setOpenUseModal] = useState(false);
   const fetchIngredients = async () => {
     try {
       const res = await axios.get(`${url}/taom/${taomId}/ingredient`);
@@ -56,7 +58,14 @@ export default function IngredientList({ taomId }) {
           </li>
         ))}
       </ul>
+<button className={styles.addButton} onClick={() => setOpenUseModal(true)}>Ishlatish</button>
 
+<UseTaomModal
+  open={openUseModal}
+  setOpen={setOpenUseModal}
+  taomId={taomId}
+  onSaved={fetchIngredients}
+/>
       <IngredientModal
         open={open}
         setOpen={setOpen}

@@ -17,6 +17,7 @@ export default function DavomatPage() {
   const [selectedGuruh, setSelectedGuruh] = useState('');
   const [selected, setSelected] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
   const authHeader = { headers: { Authorization: `Bearer ${token}` } };
@@ -27,7 +28,8 @@ export default function DavomatPage() {
   };
 
   const fetchDarsKunlar = async () => {
-    const res = await axios.get(`${url}/darssana?month=${month}`, authHeader);
+    const [year, monthNum] = month.split('-');
+    const res = await axios.get(`${url}/bola_kun_all?year=${year}&month=${monthNum}`, authHeader);
     const sorted = res.data
       .filter(d => d.sana.startsWith(month))
       .sort((a, b) => new Date(a.sana) - new Date(b.sana));
@@ -41,10 +43,11 @@ export default function DavomatPage() {
 
   const fetchBolalar = async (selectedMonth) => {
     try {
+      const [year, monthNum] = selectedMonth.split('-');
       const [bolalarRes, davomatRes, darsSanaRes] = await Promise.all([
         axios.get(`${url}/bola`, authHeader),
         axios.get(`${url}/bola_kun`, authHeader),
-        axios.get(`${url}/darssana`, authHeader),
+        axios.get(`${url}/bola_kun_all?year=${year}&month=${monthNum}`, authHeader),
       ]);
 
       const allBolalar = bolalarRes.data;
@@ -64,22 +67,35 @@ export default function DavomatPage() {
       );
 
       setBolalar(visibleBolalar);
-      setFilteredBolalar(visibleBolalar);
+      filterBolalar(visibleBolalar, selectedGuruh, searchQuery);
     } catch (err) {
       console.error('Xatolik bolalarni olishda:', err);
     }
   };
 
+  const filterBolalar = (list, guruhId, search) => {
+    let result = list;
+    if (guruhId) {
+      result = result.filter(bola => bola.guruh_id == guruhId);
+    }
+    if (search) {
+      result = result.filter(bola =>
+        bola.username.toLowerCase().includes(search.toLowerCase())
+      );
+    }
+    setFilteredBolalar(result);
+  };
+
   const handleGuruhChange = (e) => {
     const selectedValue = e.target.value;
     setSelectedGuruh(selectedValue);
+    filterBolalar(bolalar, selectedValue, searchQuery);
+  };
 
-    if (selectedValue) {
-      const filtered = bolalar.filter(bola => bola.guruh_id == selectedValue);
-      setFilteredBolalar(filtered);
-    } else {
-      setFilteredBolalar(bolalar);
-    }
+  const handleSearchChange = (e) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+    filterBolalar(bolalar, selectedGuruh, query);
   };
 
   const openModal = (bola, dars) => {
@@ -91,7 +107,7 @@ export default function DavomatPage() {
     if (!selected) return;
 
     const { bola, dars } = selected;
-    const existing = davomatlar.find(d => d.bola_id === bola.id && d.darssana_id === d.id);
+    const existing = davomatlar.find(d => d.bola_id === bola.id && d.darssana_id === dars.id);
 
     const payload = { bola_id: bola.id, darssana_id: dars.id, holati };
     const endpoint = existing ? `${url}/bola_kun/${existing.id}` : `${url}/bola_kun`;
@@ -121,7 +137,6 @@ export default function DavomatPage() {
     fetchBolalar(month);
   }, [month]);
 
-  // ❗️ error chiqqan paytda modalni yopish
   useEffect(() => {
     if (errorMessage) setSelected(null);
   }, [errorMessage]);
@@ -139,6 +154,13 @@ export default function DavomatPage() {
             fetchBolalar(newMonth);
           }}
           className={styles.monthInput}
+        />
+        <input
+          type="text"
+          placeholder="Ism yoki familiya..."
+          className={styles.searchInput}
+          value={searchQuery}
+          onChange={handleSearchChange}
         />
         <select
           value={selectedGuruh}
