@@ -14,6 +14,11 @@ export default function Dashboard() {
   const [xodimStats, setXodimStats] = useState({ xodimlar: 0, guruhlar: 0 });
   const [year, setYear] = useState(() => new Date().getFullYear().toString());
   const [daromadData, setDaromadData] = useState([]);
+  const [darslarData, setDarslarData] = useState([]);
+  const [davomatData, setDavomatData] = useState([]);
+  const [dailyDavomatData, setDailyDavomatData] = useState([]);
+  const [groupKPIData, setGroupKPIData] = useState([]);
+  const [selectedMonth, setSelectedMonth] = useState(() => (new Date().getMonth() + 1).toString().padStart(2, '0'));
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
   const authHeader = { headers: { Authorization: `Bearer ${token}` } };
@@ -30,11 +35,8 @@ export default function Dashboard() {
       const active = allBolalar.filter(b => b.is_active).length;
       const inactive = allBolalar.length - active;
 
-      const xodimlar = xodimRes.data || [];
-      const guruhlar = guruhRes.data || [];
-
       setBolaStats({ active, inactive });
-      setXodimStats({ xodimlar: xodimlar.length, guruhlar: guruhlar.length });
+      setXodimStats({ xodimlar: xodimRes.data.length, guruhlar: guruhRes.data.length });
     } catch (err) {
       console.error("Statistikani olishda xatolik:", err);
     }
@@ -42,24 +44,46 @@ export default function Dashboard() {
 
   const fetchDaromad = async () => {
     try {
-      const res = await axios.get(`${url}/daromat_type?year=${year}`, authHeader);
-      const rawData = res.data;
+      const res = await axios.get(`${url}/daromat_type`, authHeader);
+      const rawData = res.data.filter(item => {
+        const sana = new Date(item.sana);
+        return sana.getFullYear().toString() === year;
+      });
 
-      // 12 oyli bo‘sh array
+      const monthlyTotals = {};
+      rawData.forEach(item => {
+        const date = new Date(item.sana);
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+
+        if (!monthlyTotals[month]) {
+          monthlyTotals[month] = {
+            naqt: 0,
+            karta: 0,
+            prichislena: 0,
+            naqt_prichislena: 0,
+          };
+        }
+
+        monthlyTotals[month].naqt += item.naqt || 0;
+        monthlyTotals[month].karta += item.karta || 0;
+        monthlyTotals[month].prichislena += item.prichislena || 0;
+        monthlyTotals[month].naqt_prichislena += item.naqt_prichislena || 0;
+      });
+
       const months = [
         'Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun',
         'Iyul', 'Avgust', 'Sentyabr', 'Oktyabr', 'Noyabr', 'Dekabr'
       ];
 
       const data = months.map((oy, idx) => {
-        const monthNum = (idx + 1).toString().padStart(2, '0');
-        const found = rawData.find(d => d.month === monthNum);
-        return {
-          oy,
-          naqt: found?.naqt || 0,
-          karta: found?.karta || 0,
-          prichislena: found?.prichislena || 0
+        const monthKey = (idx + 1).toString().padStart(2, '0');
+        const found = monthlyTotals[monthKey] || {
+          naqt: 0,
+          karta: 0,
+          prichislena: 0,
+          naqt_prichislena: 0,
         };
+        return { oy, ...found };
       });
 
       setDaromadData(data);
@@ -68,37 +92,162 @@ export default function Dashboard() {
     }
   };
 
+  const fetchDarslar = async () => {
+    try {
+      const months = Array.from({ length: 12 }, (_, i) => (i + 1).toString().padStart(2, '0'));
+      const responses = await Promise.all(
+        months.map(m => axios.get(`${url}/bola_kun_all?month=${m}&year=${year}`, authHeader))
+      );
+      const data = responses.map((res, idx) => ({
+        oy: [
+          'Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun',
+          'Iyul', 'Avgust', 'Sentyabr', 'Oktyabr', 'Noyabr', 'Dekabr'
+        ][idx],
+        darslar: res.data.length
+      }));
+      setDarslarData(data);
+    } catch (err) {
+      console.error("Darslar sonini olishda xatolik:", err);
+    }
+  };
+
+  const fetchDavomatlar = async () => {
+    try {
+      const res = await axios.get(`${url}/bola_kun`, authHeader);
+      const rawData = res.data.filter(item => {
+        const sana = new Date(item.created_at);
+        return sana.getFullYear().toString() === year;
+      });
+
+      const monthlyCounts = {};
+      rawData.forEach(item => {
+        const date = new Date(item.created_at);
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        if (!monthlyCounts[month]) monthlyCounts[month] = { holati1: 0, holati2: 0 };
+        if (item.holati === 1) monthlyCounts[month].holati1++;
+        if (item.holati === 2) monthlyCounts[month].holati2++;
+      });
+
+      const months = [
+        'Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun',
+        'Iyul', 'Avgust', 'Sentyabr', 'Oktyabr', 'Noyabr', 'Dekabr'
+      ];
+
+      const data = months.map((oy, idx) => {
+        const monthKey = (idx + 1).toString().padStart(2, '0');
+        const found = monthlyCounts[monthKey] || { holati1: 0, holati2: 0 };
+        return { oy, ...found };
+      });
+
+      setDavomatData(data);
+    } catch (err) {
+      console.error("Davomatlarni olishda xatolik:", err);
+    }
+  };
+
+  const fetchDailyDavomat = async () => {
+    try {
+      const res = await axios.get(`${url}/bola_kun`, authHeader);
+      const today = new Date();
+      const month = today.getMonth(); // 0-based
+      const yearNow = today.getFullYear();
+
+      const rawData = res.data.filter(item => {
+        const date = new Date(item.created_at);
+        return date.getFullYear() === yearNow && date.getMonth() === month;
+      });
+
+      const daily = {};
+      rawData.forEach(item => {
+        const d = new Date(item.created_at).getDate().toString().padStart(2, '0');
+        if (!daily[d]) daily[d] = { holati1: 0, holati2: 0 };
+        if (item.holati === 1) daily[d].holati1++;
+        if (item.holati === 2) daily[d].holati2++;
+      });
+
+      const daysInMonth = new Date(yearNow, month + 1, 0).getDate();
+      const data = Array.from({ length: daysInMonth }, (_, i) => {
+        const day = (i + 1).toString().padStart(2, '0');
+        return { kun: day, ...daily[day] || { holati1: 0, holati2: 0 } };
+      });
+
+      setDailyDavomatData(data);
+    } catch (err) {
+      console.error("Har kunlik davomatni olishda xatolik:", err);
+    }
+  };
+
+  const fetchGroupKPIData = async () => {
+    try {
+      const [bolaRes, guruhRes, bolaKunRes] = await Promise.all([
+        axios.get(`${url}/bola`, authHeader),
+        axios.get(`${url}/guruh`, authHeader),
+        axios.get(`${url}/bola_kun`, authHeader)
+      ]);
+
+      const currentYear = new Date().getFullYear();
+      const month = selectedMonth;
+
+      const bolalar = bolaRes.data;
+      const guruhlar = guruhRes.data;
+      const bolaKunlar = bolaKunRes.data;
+
+      const guruhMap = {};
+      bolalar.forEach(bola => {
+        if (!bola.is_active) return;
+        if (!guruhMap[bola.guruh_id]) guruhMap[bola.guruh_id] = [];
+        guruhMap[bola.guruh_id].push(bola.id);
+      });
+
+      const result = guruhlar.map(guruh => {
+        const bolalarInGuruh = guruhMap[guruh.id] || [];
+        const bolaKuniInMonth = bolaKunlar.filter(bk => {
+          const date = new Date(bk.created_at);
+          const monthStr = (date.getMonth() + 1).toString().padStart(2, '0');
+          const yearStr = date.getFullYear().toString();
+          return monthStr === month && yearStr === currentYear.toString() && bolalarInGuruh.includes(bk.bola_id);
+        });
+
+        const holati1 = bolaKuniInMonth.filter(b => b.holati === 1).length;
+        const holati2 = bolaKuniInMonth.filter(b => b.holati === 2).length;
+        const jami = holati1 + holati2;
+        const kpi = jami > 0 ? ((holati1 / jami) * 10).toFixed(2):0
+
+        return {
+          guruh: guruh.name,
+          holati1,
+          holati2,
+          kpi
+        };
+      });
+
+      setGroupKPIData(result);
+    } catch (err) {
+      console.error("Guruh KPI'larini olishda xatolik:", err);
+    }
+  };
+
   useEffect(() => {
     fetchStats();
     fetchDaromad();
-  }, [year]);
+    fetchDarslar();
+    fetchDavomatlar();
+    fetchDailyDavomat();
+    fetchGroupKPIData();
+  }, [year, selectedMonth]);
 
   const colors = {
     naqt: '#4CAF50',
     karta: '#2196F3',
     prichislena: '#FF9800',
+    naqt_prichislena: '#9C27B0',
+    darslar: '#607D8B',
+    holati1: '#00BCD4',
+    holati2: '#FF5722',
+    kpi: '#607D8B'
   };
 
-  const CustomTooltip = ({ active, payload, label }) => {
-    if (active && payload?.length) {
-      return (
-        <div style={{
-          background: '#fff',
-          padding: '10px',
-          borderRadius: '8px',
-          boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
-        }}>
-          <p><strong>{label}</strong></p>
-          {payload.map((item, idx) => (
-            <p key={idx} style={{ color: item.fill }}>
-              {item.name}: {item.value.toLocaleString()} so‘m
-            </p>
-          ))}
-        </div>
-      );
-    }
-    return null;
-  };
+  const chartStyle = { maxWidth: '700px', margin: '0 auto' };
 
   return (
     <LayoutComponent>
@@ -119,45 +268,133 @@ export default function Dashboard() {
         </div>
 
         <div className={styles.cardGrid}>
-          <div className={`${styles.card} ${styles.green}`}>
-            <h2>Faol bolalar</h2>
-            <p>{bolaStats.active} ta</p>
-          </div>
-
-          <div className={`${styles.card} ${styles.red}`}>
-            <h2>Faol bo‘lmagan bolalar</h2>
-            <p>{bolaStats.inactive} ta</p>
-          </div>
-
-          <div className={`${styles.card} ${styles.blue}`}>
-            <h2>Jami xodimlar</h2>
-            <p>{xodimStats.xodimlar} ta</p>
-          </div>
-
-          <div className={`${styles.card} ${styles.purple}`}>
-            <h2>Jami guruhlar</h2>
-            <p>{xodimStats.guruhlar} ta</p>
-          </div>
+          <div className={`${styles.card} ${styles.green}`}><h2>Faol bolalar</h2><p>{bolaStats.active} ta</p></div>
+          <div className={`${styles.card} ${styles.red}`}><h2>Faol bo‘lmagan bolalar</h2><p>{bolaStats.inactive} ta</p></div>
+          <div className={`${styles.card} ${styles.blue}`}><h2>Jami xodimlar</h2><p>{xodimStats.xodimlar} ta</p></div>
+          <div className={`${styles.card} ${styles.purple}`}><h2>Jami guruhlar</h2><p>{xodimStats.guruhlar} ta</p></div>
         </div>
 
-        <h2 style={{ marginTop: '2rem' }}>Daromad statistikasi ({year})</h2>
-        <div className={styles.chartWrapper}>
-          <ResponsiveContainer width="100%" height={400}>
-            <BarChart
-              data={daromadData}
-              margin={{ top: 20, right: 30, left: 10, bottom: 20 }}
-              barCategoryGap={15}
-            >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="oy" />
-              <YAxis />
-              <Tooltip content={<CustomTooltip />} />
-              <Legend />
-              <Bar dataKey="naqt" name="Naqt" fill={colors.naqt} />
-              <Bar dataKey="karta" name="Karta" fill={colors.karta} />
-              <Bar dataKey="prichislena" name="Prichislena" fill={colors.prichislena} />
-            </BarChart>
-          </ResponsiveContainer>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr',marginTop:'30px' }}>
+  <div>
+      <h2 style={{ marginBottom: '0.5rem' }}>
+        📊 Oylar bo‘yicha daromadlar statistikasi ({year})
+      </h2>
+   
+
+      <ResponsiveContainer width="100%" height={280}>
+        <BarChart data={daromadData}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+          <XAxis dataKey="oy" />
+          <YAxis />
+          <Tooltip
+            contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', borderColor: '#ddd' }}
+            labelStyle={{ fontWeight: 'bold' }}
+            formatter={(value, name) => {
+              const labels = {
+                naqt: 'Naqd',
+                karta: 'Karta',
+                prichislena: 'O‘tkazma',
+                naqt_prichislena: 'Naqd o‘tkazma'
+              };
+              return [value, labels[name] || name];
+            }}
+          />
+          <Legend
+            formatter={(value) => {
+              const labels = {
+                naqt: 'Naqd',
+                karta: 'Karta',
+                prichislena: 'O‘tkazma',
+                naqt_prichislena: 'Naqd o‘tkazma'
+              };
+              return labels[value] || value;
+            }}
+          />
+          <Bar dataKey="naqt" name="Naqd" fill="#81c784" radius={[5, 5, 0, 0]} />
+          <Bar dataKey="karta" name="Karta" fill="#64b5f6" radius={[5, 5, 0, 0]} />
+          <Bar dataKey="prichislena" name="O‘tkazma" fill="#ffb74d" radius={[5, 5, 0, 0]} />
+          <Bar dataKey="naqt_prichislena" name="Naqd o‘tkazma" fill="#ba68c8" radius={[5, 5, 0, 0]} />
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+
+          <div>
+            <h2 style={{ marginBottom: '0.5rem' }}>Darslar soni</h2>
+            <ResponsiveContainer width="100%" height={250}>
+              <BarChart data={darslarData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="oy" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="darslar" fill={colors.darslar} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div>
+            <h2 style={{ marginBottom: '0.5rem' }}>Davomat statistikasi</h2>
+            <ResponsiveContainer width="100%" height={250}>
+              <BarChart data={davomatData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="oy" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="holati1" name="✅" fill={colors.holati1} />
+                <Bar dataKey="holati2" name="❌" fill={colors.holati2} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div>
+            <h2 style={{ marginBottom: '0.5rem' }}>Hozirgi oy kunlik davomat</h2>
+            <ResponsiveContainer width="100%" height={250}>
+              <BarChart data={dailyDavomatData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="kun" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="holati1" name="✅" fill={colors.holati1} />
+                <Bar dataKey="holati2" name="❌" fill={colors.holati2} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div style={{ gridColumn: '1 / -1' }}>
+            <h2>Guruhlar KPI statistikasi</h2>
+            <div style={{ marginBottom: '1rem' }}>
+              <label>Oy tanlang: </label>
+              <select
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(e.target.value)}
+                style={{ padding: '4px 8px' }}
+              >
+                {[
+                  '01','02','03','04','05','06',
+                  '07','08','09','10','11','12'
+                ].map((m, idx) => (
+                  <option key={m} value={m}>
+                    {['Yanvar','Fevral','Mart','Aprel','May','Iyun','Iyul','Avgust','Sentyabr','Oktyabr','Noyabr','Dekabr'][idx]}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={groupKPIData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="guruh" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="holati1" name="✅" fill={colors.holati1} />
+                <Bar dataKey="holati2" name="❌" fill={colors.holati2} />
+                <Bar dataKey="kpi" name="KPI (%)" fill={colors.kpi} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       </div>
     </LayoutComponent>

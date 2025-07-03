@@ -55,18 +55,19 @@ export default function Tarbiyalanuvchilar() {
       setLoading(false);
     }
   };
-const handleToggleActive = async (id, currentValue) => {
-  try {
-    await axios.put(`${url}/bola/${id}/toggle-active`, {
-      is_active: !currentValue
-    }, {
-      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-    });
-    fetchData(); // ma'lumotlarni yangilash
-  } catch (error) {
-    console.error("is_active yangilashda xatolik:", error);
-  }
-};
+
+  const handleToggleActive = async (id, currentValue) => {
+    try {
+      await axios.put(`${url}/bola/${id}/toggle-active`, {
+        is_active: !currentValue
+      }, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      fetchData();
+    } catch (error) {
+      console.error("is_active yangilashda xatolik:", error);
+    }
+  };
 
   const handleUpdate = async (updatedData) => {
     try {
@@ -116,10 +117,25 @@ const handleToggleActive = async (id, currentValue) => {
     fetchData();
   }, []);
 
+  // 🔍 Qidiruv funksiyasi barcha ustunlarni qamrab oladi
   const filteredData = data.filter((b) => {
     const groupMatch = selectedGroup ? b.guruh_id_raw === Number(selectedGroup) : true;
-    const nameMatch = b.username?.toLowerCase().includes(searchTerm.toLowerCase());
-    return groupMatch && nameMatch;
+    const term = searchTerm.toLowerCase();
+
+    const searchMatch = [
+      b.username,
+      b.metrka,
+      b.ota_fish,
+      b.ota_pasport,
+      b.ota_phone,
+      b.ona_fish,
+      b.ona_pasport,
+      b.ona_phone,
+      b.qoshimcha_phone,
+      b.address
+    ].some(field => field?.toLowerCase().includes(term));
+
+    return groupMatch && searchMatch;
   });
 
   const columnTitles = {
@@ -140,7 +156,7 @@ const handleToggleActive = async (id, currentValue) => {
     qoshimcha_phone: 'Qo‘shimcha tel',
     address: 'Manzil',
     description: 'Izoh',
-     is_active: 'Holati (aktiv)',
+    is_active: 'Holati (aktiv)',
     created_at: 'Yaratilgan vaqti',
     updated_at: 'Yangilangan vaqti'
   };
@@ -155,61 +171,53 @@ const handleToggleActive = async (id, currentValue) => {
         }}
       />
 
-{/* Filter va qidiruv qismi (zamonaviy dizayn) */}
-<div style={{ display: 'flex', gap: '20px', marginBottom: '20px', flexWrap: 'wrap' }}>
-  {/* Guruh select */}
-  <div style={{ display: 'flex', flexDirection: 'column', minWidth: '200px' }}>
-    <label style={{ marginBottom: '6px', fontWeight: '600', color: '#555' }}>
-      Guruh bo‘yicha filter:
-    </label>
-    <select
-      value={selectedGroup}
-      onChange={(e) => setSelectedGroup(e.target.value)}
-      style={{
-        padding: '8px 12px',
-        borderRadius: '6px',
-        border: '1.5px solid #ccc',
-        fontSize: '16px',
-        cursor: 'pointer',
-        outline: 'none',
-        backgroundColor: '#fff',
-      }}
-    >
-      <option value="">Barchasi</option>
-      {groups.map((g) => (
-        <option key={g.id} value={g.id}>{g.name}</option>
-      ))}
-    </select>
-  </div>
+      {/* Filter va qidiruv */}
+      <div style={{ display: 'flex', gap: '20px', marginBottom: '20px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', minWidth: '200px' }}>
+          <label style={{ marginBottom: '6px', fontWeight: '600', color: '#555' }}>Guruh bo‘yicha filter:</label>
+          <select
+            value={selectedGroup}
+            onChange={(e) => setSelectedGroup(e.target.value)}
+            style={{
+              padding: '8px 12px',
+              borderRadius: '6px',
+              border: '1.5px solid #ccc',
+              fontSize: '16px',
+              cursor: 'pointer',
+              backgroundColor: '#fff',
+            }}
+          >
+            <option value="">Barchasi</option>
+            {groups.map((g) => (
+              <option key={g.id} value={g.id}>{g.name}</option>
+            ))}
+          </select>
+        </div>
 
-  {/* Qidiruv input */}
-  <div style={{ display: 'flex', flexDirection: 'column', flexGrow: 1, minWidth: '250px' }}>
-    <label style={{ marginBottom: '6px', fontWeight: '600', color: '#555' }}>
-      Ism yoki familiya bo‘yicha qidiruv:
-    </label>
-    <input
-      type="text"
-      value={searchTerm}
-      onChange={(e) => setSearchTerm(e.target.value)}
-      placeholder="Ism yoki familiya kiriting..."
-      style={{
-        padding: '8px 12px',
-        borderRadius: '6px',
-        border: '1.5px solid #ccc',
-        fontSize: '16px',
-        outline: 'none',
-        transition: 'border-color 0.3s',
-      }}
-    />
-  </div>
-</div>
+        <div style={{ display: 'flex', flexDirection: 'column', flexGrow: 1, minWidth: '250px' }}>
+          <label style={{ marginBottom: '6px', fontWeight: '600', color: '#555' }}>
+            Qidiruv (F.I.Sh, metirka, ota/ona ismi, manzil...)
+          </label>
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Matn kiriting..."
+            style={{
+              padding: '8px 12px',
+              borderRadius: '6px',
+              border: '1.5px solid #ccc',
+              fontSize: '16px',
+              outline: 'none',
+              transition: 'border-color 0.3s',
+            }}
+          />
+        </div>
+      </div>
 
-{/* Natijalar soni */}
-<div style={{ paddingBottom: '10px', fontWeight: '600', color: '#444' }}>
-  Natijada: <span style={{ color: '#0070f3' }}>{filteredData.length}</span> ta tarbiyalanuvchi ko‘rsatildi.
-</div>
-
- 
+      <div style={{ paddingBottom: '10px', fontWeight: '600', color: '#444' }}>
+        Natijada: <span style={{ color: '#0070f3' }}>{filteredData.length}</span> ta tarbiyalanuvchi ko‘rsatildi.
+      </div>
 
       {loading ? (
         <p style={{ padding: '10px' }}>Yuklanmoqda...</p>
@@ -224,15 +232,15 @@ const handleToggleActive = async (id, currentValue) => {
             setShowModal(true);
           }}
           onDelete={(id) => handleDelete(id)}
-            customRenderers={{
-    is_active: (row) => (
-      <input
-        type="checkbox"
-        checked={row.is_active}
-        onChange={() => handleToggleActive(row.id, row.is_active)}
-      />
-    )
-  }}
+          customRenderers={{
+            is_active: (row) => (
+              <input
+                type="checkbox"
+                checked={row.is_active}
+                onChange={() => handleToggleActive(row.id, row.is_active)}
+              />
+            )
+          }}
         />
       )}
 

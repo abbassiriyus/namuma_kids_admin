@@ -58,6 +58,10 @@ export default function SkladModal({ isOpen, onClose, onSave, initialData }) {
             <option value="litr">litr</option>
             <option value="dona">dona</option>
             <option value="metr">metr</option>
+            <option value="bog'">bog'</option>
+            <option value="gramm">gramm</option>
+
+
           </select>
         </div>
 

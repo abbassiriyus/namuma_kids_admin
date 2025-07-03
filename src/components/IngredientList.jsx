@@ -36,43 +36,52 @@ const [openUseModal, setOpenUseModal] = useState(false);
     }
   };
 
-  return (
-    <div className={styles.container}>
-      <div className={styles.header}>
-        <h4 className={styles.title}>Kerakli mahsulotlar</h4>
-        <button className={styles.addButton} onClick={() => {
+ return (
+  <div className={styles.container}>
+    <div className={styles.header}>
+      <h4 className={styles.title}>Kerakli mahsulotlar</h4>
+      <div className={styles.buttonGroup}>
+        <button className={styles.actionButton} onClick={() => {
           setSelectedIngredient(null);
           setOpen(true);
         }}>
-          <Plus size={16} style={{ marginRight: '4px' }} /> Qo‘shish
+          <Plus size={16} />
+          <span>Qo‘shish</span>
+        </button>
+        <button className={styles.useButton} onClick={() => setOpenUseModal(true)}>
+          <span>Ishlatish</span>
         </button>
       </div>
-
-      <ul className={styles.list}>
-        {ingredients.map((item) => (
-          <li key={item.id} className={styles.item}>
-            <span>{item.nomi} – {item.miqdor} {item.miqdor_birlik}</span>
-            <button className={styles.deleteButton} onClick={() => handleDelete(item.id)}>
-              <Trash2 size={16} />
-            </button>
-          </li>
-        ))}
-      </ul>
-<button className={styles.addButton} onClick={() => setOpenUseModal(true)}>Ishlatish</button>
-
-<UseTaomModal
-  open={openUseModal}
-  setOpen={setOpenUseModal}
-  taomId={taomId}
-  onSaved={fetchIngredients}
-/>
-      <IngredientModal
-        open={open}
-        setOpen={setOpen}
-        taomId={taomId}
-        onSaved={fetchIngredients}
-        ingredient={selectedIngredient}
-      />
     </div>
-  );
+
+    <ul className={styles.list}>
+      {ingredients.map((item) => (
+        <li key={item.id} className={styles.item}>
+          <span className={styles.itemText}>
+            {item.nomi} – {item.miqdor} {item.hajm_birlik}
+          </span>
+          <button className={styles.deleteButton} onClick={() => handleDelete(item.id)}>
+            <Trash2 size={16} />
+          </button>
+        </li>
+      ))}
+    </ul>
+
+    <UseTaomModal
+      open={openUseModal}
+      setOpen={setOpenUseModal}
+      taomId={taomId}
+      onSaved={fetchIngredients}
+    />
+
+    <IngredientModal
+      open={open}
+      setOpen={setOpen}
+      taomId={taomId}
+      onSaved={fetchIngredients}
+      ingredient={selectedIngredient}
+    />
+  </div>
+);
+
 }

@@ -41,9 +41,9 @@ export default function SkladProductPage() {
       });
 
       const enriched = productRes.data.map(p => {
-        const kirim = kirimMap[p.id] || 0;
+        const kirim = kirimMap[p.id]*1 || 0;
         const chiqim = chiqimMap[p.id] || 0;
-        const mavjudHajm = (p.hajm || 0) + kirim - chiqim;
+        const mavjudHajm = (p.hajm || 0)*1 + kirim*1 - chiqim;
         return {
           ...p,
           mavjud_hajm: mavjudHajm

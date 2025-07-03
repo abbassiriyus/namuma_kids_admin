@@ -29,28 +29,35 @@ export default function TaomnomaPage() {
     fetchTaomlar();
   };
 
-  return (
-    <LayoutComponent>
+return (
+  <LayoutComponent>
+    <div className="mb-6">
       <AdminHeader title="Taomnoma" onCreate={() => { setSelectedTaom(null); setOpenModal(true); }} />
-
-      <div className="grid gap-4">
-        {taomlar.map((taom) => (
-          <div key={taom.id} className="p-4 border rounded shadow-sm">
-          <div className={styles.taomCard}>
-  <div className={styles.taomHeader}>
-    <h2 className={styles.taomTitle}>{taom.nomi}</h2>
-    <div className={styles.taomButtons}>
-      <button className={styles.editButton}>Tahrirlash</button>
-      <button className={styles.deleteButton}>O‘chirish</button>
     </div>
-  </div>
-</div>
-            <IngredientList taomId={taom.id} />
-          </div>
-        ))}
-      </div>
 
-      <TaomModal open={openModal} setOpen={setOpenModal} taom={selectedTaom} onSaved={fetchTaomlar} />
-    </LayoutComponent>
-  );
+    <div className={styles.gridContainer}>
+      {taomlar.map((taom) => (
+        <div key={taom.id} className={styles.card}>
+          <div className={styles.cardHeader}>
+            <h2 className={styles.taomTitle}>{taom.nomi}</h2>
+            <div className={styles.buttonGroup}>
+              <button onClick={() => { setSelectedTaom(taom); setOpenModal(true); }}
+               className={styles.iconButton}>
+                <Pencil size={16} />
+                <span>Tahrirlash</span>
+              </button>
+              <button onClick={() => handleDelete(taom.id)} className={styles.iconButtonDelete}>
+                <Trash2 size={16} />
+                <span>O‘chirish</span>
+              </button>
+            </div>
+          </div>
+          <IngredientList taomId={taom.id} />
+        </div>
+      ))}
+    </div>
+
+    <TaomModal open={openModal} setOpen={setOpenModal} taom={selectedTaom} onSaved={fetchTaomlar} />
+  </LayoutComponent>
+);
 }

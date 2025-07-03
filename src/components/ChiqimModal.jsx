@@ -47,7 +47,9 @@ export default function ChiqimModal({ isOpen, onClose, onSave, products = [], in
     // Validatsiya
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i];
-      const max = availableHajm[row.sklad_product_id] || 0;
+     
+      
+      const max = products[row.sklad_product_id] || 0;
       const entered = parseFloat(row.hajm || '0');
       if (entered > max) {
         return alert(`❌ ${i + 1}-qator: Omborda faqat ${max} birlik mavjud. Kamroq miqdor kiriting.`);
@@ -79,8 +81,10 @@ export default function ChiqimModal({ isOpen, onClose, onSave, products = [], in
 
         {rows.map((row, index) => {
           const product = products.find(p => p.id == row.sklad_product_id);
-          const mavjud = availableHajm[row.sklad_product_id];
-
+          console.log(product);
+          
+          const mavjud = product?product.available_hajm:0
+console.log(mavjud);
           return (
             <div key={index} className={styles.modal__form} style={{ marginBottom: '12px' }}>
               <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>

@@ -328,3 +328,25 @@
   border-color: #4caf50;
   box-shadow: 0 0 5px rgba(76, 175, 80, 0.4);
 }
+.filterBtn {
+  padding: 8px 14px;
+  font-size: 15px;
+  background-color: #f0f0f0;
+  border: 1.5px solid #ccc;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  color: #333;
+}
+
+.filterBtn:hover {
+  background-color: #e0e0e0;
+  border-color: #999;
+}
+
+.filterBtn.active {
+  background-color: #007bff;
+  color: white;
+  border-color: #007bff;
+}

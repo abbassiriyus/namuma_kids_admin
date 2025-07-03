@@ -15,6 +15,7 @@ export default function TolovlarPage() {
   const [month, setMonth] = useState(() => new Date().toISOString().slice(0, 7));
   const [selectedGroup, setSelectedGroup] = useState('');
   const [searchFish, setSearchFish] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState('');
   const [groups, setGroups] = useState([]);
 
   const [selectedBola, setSelectedBola] = useState(null);
@@ -33,13 +34,14 @@ export default function TolovlarPage() {
 
     try {
       const headers = { Authorization: `Bearer ${token}` };
-const [bolaRes, guruhRes, darsRes, kunRes, daromatRes] = await Promise.all([
-  axios.get(`${url}/bola`, { headers }),
-  axios.get(`${url}/guruh`, { headers }),
-  axios.get(`${url}/bola_kun_all?month=${Number(month.split('-')[1])}&year=${Number(month.split('-')[0])}`, { headers }),
-  axios.get(`${url}/bola_kun`, { headers }),
-  axios.get(`${url}/daromat_type`, { headers }),
-]);
+      const [bolaRes, guruhRes, darsRes, kunRes, daromatRes] = await Promise.all([
+        axios.get(`${url}/bola`, { headers }),
+        axios.get(`${url}/guruh`, { headers }),
+        axios.get(`${url}/bola_kun_all?month=${Number(month.split('-')[1])}&year=${Number(month.split('-')[0])}`, { headers }),
+        axios.get(`${url}/bola_kun`, { headers }),
+        axios.get(`${url}/daromat_type`, { headers }),
+      ]);
+
       const guruhMap = {};
       guruhRes.data.forEach(g => { guruhMap[g.id] = g.name });
       setGroups(guruhRes.data);
@@ -62,15 +64,15 @@ const [bolaRes, guruhRes, darsRes, kunRes, daromatRes] = await Promise.all([
         const hisob = kelgan > 24 ? oylik_tolov : kelgan * kunlik_tolov;
 
         const bolaDaromatlar = daromatlar.filter(d => d.bola_id === b.id);
-
         const naqt = bolaDaromatlar.reduce((sum, d) => sum + (d.naqt || 0), 0);
         const karta = bolaDaromatlar.reduce((sum, d) => sum + (d.karta || 0), 0);
         const prichislena = bolaDaromatlar.reduce((sum, d) => sum + (d.prichislena || 0), 0);
-        const jami_tolangan = naqt + karta + prichislena;
+        const naqt_prichislena = bolaDaromatlar.reduce((sum, d) => sum + (d.naqt_prichislena || 0), 0);
+        const jami_tolangan = naqt + karta + prichislena + naqt_prichislena;
 
         return {
           id: b.id, fish, guruh, oylik_tolov, kunlik_tolov, jami, kelgan, hisob,
-          naqt, karta, prichislena, jami_tolangan
+          naqt, karta, prichislena, naqt_prichislena, jami_tolangan
         };
       });
 
@@ -88,133 +90,134 @@ const [bolaRes, guruhRes, darsRes, kunRes, daromatRes] = await Promise.all([
   }, [month]);
 
   const filteredRows = rows.filter(r => {
-    const okGroup = selectedGroup ? r.guruh === groups.find(g => g.id === Number(selectedGroup))?.name : true;
-    const okFish = r.fish.toLowerCase().includes(searchFish.toLowerCase());
-    return okGroup && okFish;
+    const guruhOk = selectedGroup ? r.guruh === groups.find(g => g.id == selectedGroup)?.name : true;
+    const fishOk = r.fish.toLowerCase().includes(searchFish.toLowerCase());
+
+    let statusOk = true;
+    if (selectedStatus === 'not-paid') {
+      statusOk = r.jami_tolangan === 0;
+    } else if (selectedStatus === 'part-paid') {
+      statusOk = r.jami_tolangan > 0 && r.jami_tolangan < r.hisob;
+    } else if (selectedStatus === 'fully-paid') {
+      statusOk = r.jami_tolangan >= r.hisob;
+    }
+
+    return guruhOk && fishOk && statusOk;
   });
 
   const totalSummary = filteredRows.reduce((acc, row) => {
     acc.naqt += row.naqt;
     acc.karta += row.karta;
     acc.prichislena += row.prichislena;
+    acc.naqt_prichislena += row.naqt_prichislena || 0;
     acc.jami_tolangan += row.jami_tolangan;
     return acc;
-  }, { naqt: 0, karta: 0, prichislena: 0, jami_tolangan: 0 });
+  }, { naqt: 0, karta: 0, prichislena: 0, naqt_prichislena: 0, jami_tolangan: 0 });
 
-  const columns = ['fish', 'guruh', 'oylik_tolov', 'kunlik_tolov', 'jami', 'kelgan', 'hisob', 'naqt', 'karta', 'prichislena', 'jami_tolangan'];
+  const columns = [
+    'fish', 'guruh', 'oylik_tolov', 'kunlik_tolov', 'jami', 'kelgan', 'hisob',
+    'naqt', 'karta', 'prichislena', 'naqt_prichislena', 'jami_tolangan'
+  ];
+
   const columnTitles = {
     fish: 'F.I.Sh.',
     guruh: 'Guruh',
     oylik_tolov: "Oylik to'lov (so'm)",
     kunlik_tolov: "Kunlik to'lov (so'm)",
-    jami: 'Jami darslar soni',
-    kelgan: 'Kelgan darslar',
-    hisob: 'Hisoblangan summa (so\'m)',
-    naqt: 'Naqt to‘langan (so\'m)',
-    karta: 'Karta orqali (so\'m)',
-    prichislena: 'Bank transferi (so\'m)',
-    jami_tolangan: 'Jami to‘langan (so\'m)',
+    jami: 'Jami dars',
+    kelgan: 'Kelgan',
+    hisob: 'Hisoblangan',
+    naqt: 'Naqt',
+    karta: 'Karta',
+    prichislena: 'Bank',
+    naqt_prichislena: 'Bank (naqt)', // yangi ustun
+    jami_tolangan: 'Jami to‘langan',
   };
 
   return (
     <LayoutComponent>
-      <h2 style={{ fontSize: '24px', fontWeight: '700', marginBottom: '16px', color: '#333' }}>
+      <h2 style={{ fontSize: '24px', fontWeight: '700', marginBottom: '16px' }}>
         To‘lovlar va daromadlar ({month})
       </h2>
 
-      <div style={{ display: 'flex', gap: '20px', marginBottom: '20px', flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', marginBottom: '20px' }}>
         <div style={{ display: 'flex', flexDirection: 'column' }}>
-          <label htmlFor="monthInput" style={{ marginBottom: '6px', fontWeight: '600', color: '#555' }}>Oy tanlash:</label>
+          <label>Oy:</label>
           <input
-            id="monthInput"
             type="month"
             value={month}
             onChange={e => setMonth(e.target.value)}
-            style={{
-              padding: '8px 12px',
-              borderRadius: '6px',
-              border: '1.5px solid #ccc',
-              fontSize: '16px',
-              outline: 'none',
-              transition: 'border-color 0.3s',
-            }}
+            style={{ padding: '8px', border: '1px solid #ccc', borderRadius: '6px' }}
           />
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', minWidth: '200px' }}>
-          <label htmlFor="groupSelect" style={{ marginBottom: '6px', fontWeight: '600', color: '#555' }}>Guruh bo‘yicha filter:</label>
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <label>Guruh:</label>
           <select
-            id="groupSelect"
             value={selectedGroup}
             onChange={e => setSelectedGroup(e.target.value)}
-            style={{
-              padding: '8px 12px',
-              borderRadius: '6px',
-              border: '1.5px solid #ccc',
-              fontSize: '16px',
-              cursor: 'pointer',
-              outline: 'none',
-              backgroundColor: '#fff',
-            }}
+            style={{ padding: '8px', border: '1px solid #ccc', borderRadius: '6px' }}
           >
-            <option value=''>Barchasi</option>
+            <option value="">Barchasi</option>
             {groups.map(g => (
               <option key={g.id} value={g.id}>{g.name}</option>
             ))}
           </select>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', flexGrow: 1, minWidth: '250px' }}>
-          <label htmlFor="searchInput" style={{ marginBottom: '6px', fontWeight: '600', color: '#555' }}>Ism yoki familiya bo‘yicha qidiruv:</label>
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <label>Ism/Familya:</label>
           <input
-            id="searchInput"
             type="text"
-            placeholder="Ism yoki familiya kiriting..."
+            placeholder="Qidiruv..."
             value={searchFish}
             onChange={e => setSearchFish(e.target.value)}
-            style={{
-              padding: '8px 12px',
-              borderRadius: '6px',
-              border: '1.5px solid #ccc',
-              fontSize: '16px',
-              outline: 'none',
-              transition: 'border-color 0.3s',
-            }}
+            style={{ padding: '8px', border: '1px solid #ccc', borderRadius: '6px' }}
           />
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', minWidth: '200px' }}>
+          <label>To‘lov holati:</label>
+          <select
+            value={selectedStatus}
+            onChange={e => setSelectedStatus(e.target.value)}
+            style={{ padding: '8px', border: '1px solid #ccc', borderRadius: '6px' }}
+          >
+            <option value="">Barchasi</option>
+            <option value="not-paid">Umuman to‘lamaganlar</option>
+            <option value="part-paid">To‘liq to‘lamaganlar</option>
+            <option value="fully-paid">To‘liq to‘laganlar</option>
+          </select>
         </div>
       </div>
 
       {loading ? (
-        <p style={{ fontSize: '18px', color: '#666' }}>Yuklanmoqda...</p>
+        <p>Yuklanmoqda...</p>
       ) : (
         <>
-          <p style={{ marginBottom: '10px', fontWeight: '600', color: '#444' }}>
-            Natijada: <span style={{ color: '#0070f3' }}>{filteredRows.length}</span> ta tarbiyalanuvchi ko‘rsatildi.
-          </p>
+          <p><strong>Natija:</strong> {filteredRows.length} ta bola</p>
 
           <AdminTable
             title=""
-            columns={Object.keys(columnTitles)}
+            columns={columns}
             columnTitles={columnTitles}
             data={filteredRows}
             onEdit={row => { setSelectedBola(row); setModalOpen(true); }}
             onDelete={id => { setDeleteTargetBolaId(id); setDeleteModalOpen(true); }}
           />
 
-          <div
-            style={{
-              marginTop: '24px',
-              padding: '16px',
-              backgroundColor: '#f5f8ff',
-              borderRadius: '8px',
-              boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
-              maxWidth: '400px',
-            }}
-          >
-            <h3 style={{ fontWeight: '700', marginBottom: '12px', color: '#222' }}>Umumiy to‘lovlar:</h3>
+          <div style={{
+            marginTop: '24px',
+            padding: '16px',
+            backgroundColor: '#f9f9f9',
+            borderRadius: '8px',
+            maxWidth: '400px'
+          }}>
+            <h3>Umumiy To‘lovlar</h3>
             <p><strong>Naqt:</strong> {totalSummary.naqt.toLocaleString()} so'm</p>
             <p><strong>Karta:</strong> {totalSummary.karta.toLocaleString()} so'm</p>
-            <p><strong>Prichislena:</strong> {totalSummary.prichislena.toLocaleString()} so'm</p>
+            <p><strong>Bank to`lov:</strong> {totalSummary.prichislena.toLocaleString()} so'm</p>
+            <p><strong>Bank(Naqt) to`lov:</strong> {totalSummary.naqt_prichislena.toLocaleString()} so'm</p>
             <p><strong>Jami to‘langan:</strong> {totalSummary.jami_tolangan.toLocaleString()} so'm</p>
           </div>
         </>

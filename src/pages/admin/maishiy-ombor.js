@@ -41,7 +41,7 @@ export default function MaishiySkladPage() {
       const finalData = skladRes.data.map(item => {
         const kirimHajm = kirimMap[item.id] || 0;
         const chiqimHajm = chiqimMap[item.id] || 0;
-        const mavjud = item.hajm + kirimHajm - chiqimHajm;
+        const mavjud = item.hajm*1 + kirimHajm*1 - chiqimHajm;
         return {
           ...item,
           mavjud

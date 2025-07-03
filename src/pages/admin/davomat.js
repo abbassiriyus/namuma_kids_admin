@@ -18,6 +18,7 @@ export default function JurnalPage() {
   const [newSana, setNewSana] = useState('');
   const [newMavzu, setNewMavzu] = useState('');
   const [editId, setEditId] = useState(null);
+  const [showUnmarkedOnly, setShowUnmarkedOnly] = useState(false);
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
   const authHeader = { headers: { Authorization: `Bearer ${token}` } };
@@ -48,16 +49,13 @@ export default function JurnalPage() {
 
   const handleAddOrUpdate = async () => {
     if (!newSana || !newMavzu) return;
-
     const originalDate = new Date(newSana);
     originalDate.setDate(originalDate.getDate() + 1);
     const adjustedDate = originalDate.toISOString().slice(0, 10);
-
     const payload = { sana: adjustedDate, mavzu: newMavzu };
     const apiUrl = editId ? `${url}/bola_kuni_all/${editId}` : `${url}/bola_kuni_all`;
 
     await axios[editId ? 'put' : 'post'](apiUrl, payload, authHeader);
-
     setNewSana('');
     setNewMavzu('');
     setEditId(null);
@@ -79,13 +77,7 @@ export default function JurnalPage() {
   const handleGuruhChange = (e) => {
     const selectedValue = e.target.value;
     setSelectedGuruh(selectedValue);
-    
-    if (selectedValue) {
-      const filtered = bolalar.filter(bola => bola.guruh_id == selectedValue);
-      setFilteredBolalar(filtered);
-    } else {
-      setFilteredBolalar(bolalar);
-    }
+    filterBolalar(selectedValue, showUnmarkedOnly);
   };
 
   const handleCheckboxChange = async (bola, dars) => {
@@ -105,6 +97,24 @@ export default function JurnalPage() {
     await fetchDavomatlar();
   };
 
+  const today = new Date().toISOString().slice(0, 10);
+  const todayLesson = darsKunlar.find(d => d.sana.slice(0, 10) === today);
+
+  const filterBolalar = (guruhId, onlyUnmarked) => {
+    let data = [...bolalar];
+    if (guruhId) {
+      data = data.filter(b => b.guruh_id == guruhId);
+    }
+    if (onlyUnmarked && todayLesson) {
+      data = data.filter(b => {
+        return !davomatlar.find(
+          v => v.bola_id === b.id && v.darssana_id === todayLesson.id
+        );
+      });
+    }
+    setFilteredBolalar(data);
+  };
+
   useEffect(() => {
     fetchGuruhlar();
     fetchBolalar();
@@ -114,6 +124,10 @@ export default function JurnalPage() {
   useEffect(() => {
     fetchDarsKunlar();
   }, [month]);
+
+  useEffect(() => {
+    filterBolalar(selectedGuruh, showUnmarkedOnly);
+  }, [bolalar, selectedGuruh, showUnmarkedOnly, davomatlar, darsKunlar]);
 
   return (
     <LayoutComponent>
@@ -135,7 +149,6 @@ export default function JurnalPage() {
               borderRadius: '6px',
               border: '1.5px solid #ccc',
               fontSize: '16px',
-              outline: 'none',
               backgroundColor: '#fff'
             }}
           />
@@ -151,7 +164,6 @@ export default function JurnalPage() {
               borderRadius: '6px',
               border: '1.5px solid #ccc',
               fontSize: '16px',
-              cursor: 'pointer',
               backgroundColor: '#fff'
             }}
           >
@@ -160,6 +172,22 @@ export default function JurnalPage() {
               <option key={guruh.id} value={guruh.id}>{guruh.name}</option>
             ))}
           </select>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <label style={{ fontWeight: '600', color: '#555' }}>
+            Bugungi davomat belgilanmaganlar:
+          </label>
+          <input
+            type="checkbox"
+            checked={showUnmarkedOnly}
+            onChange={() => setShowUnmarkedOnly(prev => !prev)}
+            style={{ width: '20px', height: '20px' }}
+            disabled={!todayLesson}
+          />
+          {!todayLesson && (
+            <span style={{ color: 'red', fontSize: '12px' }}>Bugungi dars belgilanmagan</span>
+          )}
         </div>
       </div>
 

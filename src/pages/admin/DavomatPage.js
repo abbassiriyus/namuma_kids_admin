@@ -18,6 +18,7 @@ export default function DavomatPage() {
   const [selected, setSelected] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [filterUnmarkedOnly, setFilterUnmarkedOnly] = useState(false);
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
   const authHeader = { headers: { Authorization: `Bearer ${token}` } };
@@ -67,35 +68,56 @@ export default function DavomatPage() {
       );
 
       setBolalar(visibleBolalar);
-      filterBolalar(visibleBolalar, selectedGuruh, searchQuery);
+      filterBolalar(visibleBolalar, selectedGuruh, searchQuery, filterUnmarkedOnly);
     } catch (err) {
       console.error('Xatolik bolalarni olishda:', err);
     }
   };
 
-  const filterBolalar = (list, guruhId, search) => {
+  const filterBolalar = (list, guruhId, search, unmarkedOnly) => {
     let result = list;
+
     if (guruhId) {
       result = result.filter(bola => bola.guruh_id == guruhId);
     }
+
     if (search) {
       result = result.filter(bola =>
         bola.username.toLowerCase().includes(search.toLowerCase())
       );
     }
+
+    if (unmarkedOnly) {
+      const today = new Date().toISOString().slice(0, 10);
+      const todayLesson = darsKunlar.find(d => d.sana.slice(0, 10) === today);
+      if (todayLesson) {
+        result = result.filter(bola => {
+          return !davomatlar.find(
+            d => d.bola_id === bola.id && d.darssana_id === todayLesson.id
+          );
+        });
+      }
+    }
+
     setFilteredBolalar(result);
   };
 
   const handleGuruhChange = (e) => {
     const selectedValue = e.target.value;
     setSelectedGuruh(selectedValue);
-    filterBolalar(bolalar, selectedValue, searchQuery);
+    filterBolalar(bolalar, selectedValue, searchQuery, filterUnmarkedOnly);
   };
 
   const handleSearchChange = (e) => {
     const query = e.target.value;
     setSearchQuery(query);
-    filterBolalar(bolalar, selectedGuruh, query);
+    filterBolalar(bolalar, selectedGuruh, query, filterUnmarkedOnly);
+  };
+
+  const toggleUnmarkedOnly = () => {
+    const newValue = !filterUnmarkedOnly;
+    setFilterUnmarkedOnly(newValue);
+    filterBolalar(bolalar, selectedGuruh, searchQuery, newValue);
   };
 
   const openModal = (bola, dars) => {
@@ -172,6 +194,9 @@ export default function DavomatPage() {
             <option key={guruh.id} value={guruh.id}>{guruh.name}</option>
           ))}
         </select>
+        <button onClick={toggleUnmarkedOnly} className={styles.filterBtn}>
+          {filterUnmarkedOnly ? "🔁 Barchasini ko‘rsatish" : "🕒 Bugun belgilanmaganlar"}
+        </button>
       </div>
 
       <div className={styles.tableWrapper}>
@@ -222,6 +247,46 @@ export default function DavomatPage() {
               );
             })}
           </tbody>
+
+       <tfoot>
+  <tr>
+    <td></td>
+    <td style={{ fontWeight: 'bold' }}>Kun bo‘yicha:</td>
+    {darsKunlar.map(d => {
+      const kunDavomat = davomatlar.filter(
+        v => v.darssana_id === d.id &&
+             filteredBolalar.some(b => b.id === v.bola_id)
+      );
+      const bor = kunDavomat.filter(v => v.holati === 1).length;
+      const yoq = kunDavomat.filter(v => v.holati === 2).length;
+
+      return (
+        <td key={d.id} style={{ fontSize: '12px', lineHeight: '14px', textAlign: 'center' }}>
+          ✅ {bor}<br />❌ {yoq}
+        </td>
+      );
+    })}
+    <td style={{ fontWeight: 'bold', color: '#166534' }}>
+      {
+        davomatlar.filter(
+          v => v.holati === 1 &&
+               filteredBolalar.some(b => b.id === v.bola_id) &&
+               darsKunlar.some(d => d.id === v.darssana_id)
+        ).length
+      }
+    </td>
+    <td style={{ fontWeight: 'bold', color: '#991b1b' }}>
+      {
+        davomatlar.filter(
+          v => v.holati === 2 &&
+               filteredBolalar.some(b => b.id === v.bola_id) &&
+               darsKunlar.some(d => d.id === v.darssana_id)
+        ).length
+      }
+    </td>
+  </tr>
+</tfoot>
+
         </table>
       </div>
 
