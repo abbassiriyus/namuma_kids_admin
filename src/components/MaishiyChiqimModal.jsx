@@ -3,10 +3,10 @@ import styles from '@/styles/BolaModal.module.css';
 import axios from 'axios';
 import url from '@/host/host';
 
-export default function ChiqimModal({ isOpen, onClose, onSave, products = [], initialData = null }) {
+export default function MaishiyChiqimModal({ isOpen, onClose, onSave, products = [], initialData = null }) {
   const [rows, setRows] = useState([{ sklad_product_id: '', hajm: '', description: '' }]);
   const [chiqimSana, setChiqimSana] = useState('');
-  const [availableHajm, setAvailableHajm] = useState({}); // product_id => hajm
+  const [availableHajm, setAvailableHajm] = useState({});
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
   const authHeader = { headers: { Authorization: `Bearer ${token}` } };
@@ -23,44 +23,38 @@ export default function ChiqimModal({ isOpen, onClose, onSave, products = [], in
 
   useEffect(() => {
     if (isOpen) {
-      calculateAvailableHajm(); // Modal ochilganda hisobla
+      fetchAvailableStock();
     }
   }, [isOpen]);
 
-  const calculateAvailableHajm = async () => {
+  const fetchAvailableStock = async () => {
     try {
-      const [productsRes, kirimRes, chiqimRes] = await Promise.all([
-        axios.get(`${url}/sklad_product`, authHeader),
-        axios.get(`${url}/sklad_product_taktic`, authHeader),
-        axios.get(`${url}/chiqim_ombor`, authHeader),
+      const [skladRes, kirimRes, chiqimRes] = await Promise.all([
+        axios.get(`${url}/sklad_maishiy`, authHeader),
+        axios.get(`${url}/kirim_maishiy`, authHeader),
+        axios.get(`${url}/chiqim_maishiy`, authHeader),
       ]);
 
-      const productList = productsRes.data;
-      const kirimlar = kirimRes.data;
-      const chiqimlar = chiqimRes.data;
-
       const kirimMap = {};
-      kirimlar.forEach(k => {
-        const id = Number(k.sklad_product_id);
-        kirimMap[id] = (kirimMap[id] || 0) + Number(k.hajm || 0);
+      kirimRes.data.forEach(k => {
+        kirimMap[k.sklad_product_id] = (kirimMap[k.sklad_product_id] || 0) + parseFloat(k.hajm || 0);
       });
 
       const chiqimMap = {};
-      chiqimlar.forEach(c => {
-        const id = Number(c.sklad_product_id);
-        chiqimMap[id] = (chiqimMap[id] || 0) + Number(c.hajm || 0);
+      chiqimRes.data.forEach(c => {
+        chiqimMap[c.sklad_product_id] = (chiqimMap[c.sklad_product_id] || 0) + parseFloat(c.hajm || 0);
       });
 
-      const availableMap = {};
-      productList.forEach(p => {
-        const id = Number(p.id);
-        const boshlangich = Number(p.hajm || 0);
+      const available = {};
+      skladRes.data.forEach(p => {
+        const id = p.id;
+        const boshlangich = parseFloat(p.hajm || 0);
         const kirim = kirimMap[id] || 0;
         const chiqim = chiqimMap[id] || 0;
-        availableMap[id] = boshlangich + kirim - chiqim;
+        available[id] = boshlangich + kirim - chiqim;
       });
 
-      setAvailableHajm(availableMap);
+      setAvailableHajm(available);
     } catch (err) {
       console.error('Mavjud hajmni hisoblashda xatolik:', err);
     }
@@ -86,14 +80,13 @@ export default function ChiqimModal({ isOpen, onClose, onSave, products = [], in
       }
     }
 
-    // ✅ Sana ustiga 1 kun qo‘shamiz
     const sanaWithOffset = new Date(chiqimSana);
     sanaWithOffset.setDate(sanaWithOffset.getDate() + 1);
     const formattedSana = sanaWithOffset.toISOString().slice(0, 10);
 
     const payload = rows.map(r => ({
       ...r,
-      chiqim_sana: formattedSana,
+      chiqim_sana: formattedSana
     }));
 
     onSave(payload.length === 1 && initialData ? payload[0] : payload);
@@ -120,6 +113,8 @@ export default function ChiqimModal({ isOpen, onClose, onSave, products = [], in
 
         {rows.map((row, index) => {
           const productId = Number(row.sklad_product_id);
+          console.log(products);
+          
           const product = products.find(p => Number(p.id) === productId);
           const mavjud = availableHajm[productId];
 

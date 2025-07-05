@@ -2,7 +2,7 @@
 import React from 'react';
 import styles from '@/styles/ChiqimFilter.module.css';
 
-export default function ChiqimFilter({ filter, onChange, onSubmit, onExport }) {
+export default function ChiqimFilter({ filter, onChange, onSubmit, onExport, onSearch }) {
   return (
     <div className={styles.filterContainer}>
       <input
@@ -28,11 +28,17 @@ export default function ChiqimFilter({ filter, onChange, onSubmit, onExport }) {
         className={styles.input}
       >
         <option value="">Barcha mahsulotlar</option>
-     {(filter.products || []).map(p => (
-  <option key={p.id} value={p.id}>{p.nomi}</option>
-))}
-
+        {(filter.products || []).map(p => (
+          <option key={p.id} value={p.id}>{p.nomi}</option>
+        ))}
       </select>
+
+      <input
+        type="text"
+        placeholder="Mahsulotni qidiring..."
+        className={styles.searchInput}
+        onChange={onSearch}  // Search inputga o'zgartirishni yuborish
+      />
 
       <button onClick={onSubmit} className={styles.button}>🔍 Filterlash</button>
       <button onClick={onExport} className={styles.button} style={{ backgroundColor: '#2ecc71' }}>📁 Filega aylantirish</button>

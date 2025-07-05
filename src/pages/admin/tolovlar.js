@@ -37,7 +37,7 @@ export default function TolovlarPage() {
       const [bolaRes, guruhRes, darsRes, kunRes, daromatRes] = await Promise.all([
         axios.get(`${url}/bola`, { headers }),
         axios.get(`${url}/guruh`, { headers }),
-        axios.get(`${url}/bola_kun_all?month=${Number(month.split('-')[1])}&year=${Number(month.split('-')[0])}`, { headers }),
+        axios.get(`${url}/bola_kun_all`, { headers }),
         axios.get(`${url}/bola_kun`, { headers }),
         axios.get(`${url}/daromat_type`, { headers }),
       ]);
@@ -46,24 +46,53 @@ export default function TolovlarPage() {
       guruhRes.data.forEach(g => { guruhMap[g.id] = g.name });
       setGroups(guruhRes.data);
 
-      const darsKunlar = darsRes.data.filter(d => d.sana?.slice(0, 7) === month);
-      const daromatlar = daromatRes.data.filter(d => d.sana?.slice(0, 7) === month);
+      const daromatMap = {};
+      daromatRes.data.forEach(d => {
+        const oy = d.sana?.slice(0, 7);
+        if (!oy) return;
+        if (!daromatMap[d.bola_id]) daromatMap[d.bola_id] = {};
+        if (!daromatMap[d.bola_id][oy]) daromatMap[d.bola_id][oy] = 0;
+        daromatMap[d.bola_id][oy] +=
+          (d.naqt || 0) + (d.karta || 0) + (d.prichislena || 0) + (d.naqt_prichislena || 0);
+      });
+
+      const oySet = new Set();
+      [...darsRes.data, ...daromatRes.data].forEach(d => {
+        const oy = d.sana?.slice(0, 7);
+        if (oy) oySet.add(oy);
+      });
+      const oylar = [...oySet].sort();
 
       const bolalar = bolaRes.data.map(b => {
         const fish = b.username;
         const guruh = guruhMap[b.guruh_id] || 'Noma’lum';
-
-        const bolaYoqlama = kunRes.data.filter(
-          k => k.bola_id === b.id && darsKunlar.some(d => d.id === k.darssana_id)
-        );
-
-        const kelgan = bolaYoqlama.filter(k => k.holati === 1).length;
-        const jami = darsKunlar.length;
         const oylik_tolov = b.oylik_toliv || 0;
         const kunlik_tolov = Math.round(oylik_tolov / 25);
-        const hisob = kelgan > 24 ? oylik_tolov : kelgan * kunlik_tolov;
 
-        const bolaDaromatlar = daromatlar.filter(d => d.bola_id === b.id);
+        let jamiHisob = 0;
+        let jamiTolangan = 0;
+        let thisMonthJami = 0;
+        let thisMonthKelgan = 0;
+
+        for (const oy of oylar) {
+          const darslar = darsRes.data.filter(d => d.sana?.slice(0, 7) === oy);
+          const yoqlama = kunRes.data.filter(
+            k => k.bola_id === b.id && darslar.some(d => d.id === k.darssana_id)
+          );
+          const kelgan = yoqlama.filter(k => k.holati === 1).length;
+          const hisob = kelgan > 24 ? oylik_tolov : kelgan * kunlik_tolov;
+          jamiHisob += hisob;
+          jamiTolangan += daromatMap[b.id]?.[oy] || 0;
+
+          if (oy === month) {
+            thisMonthJami = darslar.length;
+            thisMonthKelgan = kelgan;
+          }
+        }
+
+        const bolaDaromatlar = daromatRes.data.filter(
+          d => d.bola_id === b.id && d.sana?.slice(0, 7) === month
+        );
         const naqt = bolaDaromatlar.reduce((sum, d) => sum + (d.naqt || 0), 0);
         const karta = bolaDaromatlar.reduce((sum, d) => sum + (d.karta || 0), 0);
         const prichislena = bolaDaromatlar.reduce((sum, d) => sum + (d.prichislena || 0), 0);
@@ -71,8 +100,20 @@ export default function TolovlarPage() {
         const jami_tolangan = naqt + karta + prichislena + naqt_prichislena;
 
         return {
-          id: b.id, fish, guruh, oylik_tolov, kunlik_tolov, jami, kelgan, hisob,
-          naqt, karta, prichislena, naqt_prichislena, jami_tolangan
+          id: b.id,
+          fish,
+          guruh,
+          oylik_tolov,
+          kunlik_tolov,
+          jami: thisMonthJami,
+          kelgan: thisMonthKelgan,
+          hisob: jamiHisob,
+          naqt,
+          karta,
+          prichislena,
+          naqt_prichislena,
+          jami_tolangan,
+          balans: jamiTolangan - jamiHisob,
         };
       });
 
@@ -92,7 +133,6 @@ export default function TolovlarPage() {
   const filteredRows = rows.filter(r => {
     const guruhOk = selectedGroup ? r.guruh === groups.find(g => g.id == selectedGroup)?.name : true;
     const fishOk = r.fish.toLowerCase().includes(searchFish.toLowerCase());
-
     let statusOk = true;
     if (selectedStatus === 'not-paid') {
       statusOk = r.jami_tolangan === 0;
@@ -101,7 +141,6 @@ export default function TolovlarPage() {
     } else if (selectedStatus === 'fully-paid') {
       statusOk = r.jami_tolangan >= r.hisob;
     }
-
     return guruhOk && fishOk && statusOk;
   });
 
@@ -116,22 +155,23 @@ export default function TolovlarPage() {
 
   const columns = [
     'fish', 'guruh', 'oylik_tolov', 'kunlik_tolov', 'jami', 'kelgan', 'hisob',
-    'naqt', 'karta', 'prichislena', 'naqt_prichislena', 'jami_tolangan'
+    'naqt', 'karta', 'prichislena', 'naqt_prichislena', 'jami_tolangan', 'balans'
   ];
 
   const columnTitles = {
     fish: 'F.I.Sh.',
     guruh: 'Guruh',
-    oylik_tolov: "Oylik to'lov (so'm)",
-    kunlik_tolov: "Kunlik to'lov (so'm)",
+    oylik_tolov: "Oylik to'lov",
+    kunlik_tolov: "Kunlik to'lov",
     jami: 'Jami dars',
     kelgan: 'Kelgan',
-    hisob: 'Hisoblangan',
+    hisob: 'Hisoblangan (jami)',
     naqt: 'Naqt',
     karta: 'Karta',
     prichislena: 'Bank',
-    naqt_prichislena: 'Bank (naqt)', // yangi ustun
+    naqt_prichislena: 'Bank (naqt)',
     jami_tolangan: 'Jami to‘langan',
+    balans: 'Balans (ortiqcha/qarz)',
   };
 
   return (
@@ -143,21 +183,14 @@ export default function TolovlarPage() {
       <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', marginBottom: '20px' }}>
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           <label>Oy:</label>
-          <input
-            type="month"
-            value={month}
-            onChange={e => setMonth(e.target.value)}
-            style={{ padding: '8px', border: '1px solid #ccc', borderRadius: '6px' }}
-          />
+          <input type="month" value={month} onChange={e => setMonth(e.target.value)}
+            style={{ padding: '8px', border: '1px solid #ccc', borderRadius: '6px' }} />
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           <label>Guruh:</label>
-          <select
-            value={selectedGroup}
-            onChange={e => setSelectedGroup(e.target.value)}
-            style={{ padding: '8px', border: '1px solid #ccc', borderRadius: '6px' }}
-          >
+          <select value={selectedGroup} onChange={e => setSelectedGroup(e.target.value)}
+            style={{ padding: '8px', border: '1px solid #ccc', borderRadius: '6px' }}>
             <option value="">Barchasi</option>
             {groups.map(g => (
               <option key={g.id} value={g.id}>{g.name}</option>
@@ -167,22 +200,15 @@ export default function TolovlarPage() {
 
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           <label>Ism/Familya:</label>
-          <input
-            type="text"
-            placeholder="Qidiruv..."
-            value={searchFish}
+          <input type="text" placeholder="Qidiruv..." value={searchFish}
             onChange={e => setSearchFish(e.target.value)}
-            style={{ padding: '8px', border: '1px solid #ccc', borderRadius: '6px' }}
-          />
+            style={{ padding: '8px', border: '1px solid #ccc', borderRadius: '6px' }} />
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', minWidth: '200px' }}>
           <label>To‘lov holati:</label>
-          <select
-            value={selectedStatus}
-            onChange={e => setSelectedStatus(e.target.value)}
-            style={{ padding: '8px', border: '1px solid #ccc', borderRadius: '6px' }}
-          >
+          <select value={selectedStatus} onChange={e => setSelectedStatus(e.target.value)}
+            style={{ padding: '8px', border: '1px solid #ccc', borderRadius: '6px' }}>
             <option value="">Barchasi</option>
             <option value="not-paid">Umuman to‘lamaganlar</option>
             <option value="part-paid">To‘liq to‘lamaganlar</option>
@@ -196,7 +222,6 @@ export default function TolovlarPage() {
       ) : (
         <>
           <p><strong>Natija:</strong> {filteredRows.length} ta bola</p>
-
           <AdminTable
             title=""
             columns={columns}

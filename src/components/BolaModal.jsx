@@ -4,6 +4,7 @@ import styles from '@/styles/BolaModal.module.css';
 export default function BolaModal({ bola, onClose, onSave, guruhlar = [] }) {
   const [formData, setFormData] = useState(bola || {});
   const [errors, setErrors] = useState({});
+  const [serverError, setServerError] = useState('');
 
   useEffect(() => {
     for (let j = 0; j < guruhlar.length; j++) {
@@ -13,15 +14,17 @@ export default function BolaModal({ bola, onClose, onSave, guruhlar = [] }) {
     }
     setFormData(bola || {});
     setErrors({});
+    setServerError('');
   }, [bola]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     setErrors((prev) => ({ ...prev, [name]: '' }));
+    setServerError('');
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const requiredFields = [
       'username', 'metrka', 'guruh_id', 'tugilgan_kun',
       'oylik_toliv', 'ota_fish', 'ota_phone',
@@ -40,8 +43,13 @@ export default function BolaModal({ bola, onClose, onSave, guruhlar = [] }) {
       return;
     }
 
-    onSave(formData);
-    onClose();
+    try {
+      await onSave(formData);
+      onClose(); // ✅ faqat muvaffaqiyatli saqlanganda modal yopiladi
+    } catch (err) {
+      const msg = err?.response?.data?.error || 'Saqlashda xatolik yuz berdi';
+      setServerError(msg); // ❗ xatolikni ko‘rsatish
+    }
   };
 
   return (
@@ -49,6 +57,12 @@ export default function BolaModal({ bola, onClose, onSave, guruhlar = [] }) {
       <div className={styles.modal__content}>
         <h3 className={styles.modal__title}>Tarbiyalanuvchini tahrirlash</h3>
         <div className={styles.modal__form}>
+
+          {serverError && (
+            <div style={{ color: 'red', marginBottom: '10px' }}>
+              {serverError}
+            </div>
+          )}
 
           <Input name="username" placeholder="F.I.Sh" value={formData.username} onChange={handleChange} error={errors.username} />
           <Input name="metrka" placeholder="Metirka raqami" value={formData.metrka} onChange={handleChange} error={errors.metrka} />
@@ -70,7 +84,7 @@ export default function BolaModal({ bola, onClose, onSave, guruhlar = [] }) {
 
           <Input name="qoshimcha_phone" placeholder="Qo‘shimcha telefon" value={formData.qoshimcha_phone} onChange={handleChange} />
           <Input name="address" placeholder="Manzil" value={formData.address} onChange={handleChange} />
-          
+
           <div>
             <textarea
               name="description"
@@ -80,8 +94,8 @@ export default function BolaModal({ bola, onClose, onSave, guruhlar = [] }) {
               style={{ width: '100%', padding: '8px', marginTop: '4px' }}
             />
           </div>
-
         </div>
+
         <div className={styles.modal__buttons}>
           <button onClick={handleSubmit}>✅ Saqlash</button>
           <button onClick={onClose}>❌ Bekor qilish</button>

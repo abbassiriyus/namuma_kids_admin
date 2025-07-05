@@ -139,6 +139,8 @@ export default function ChiqimOmborPage() {
       ...item,
       product_nomi: productMap[item.sklad_product_id] || '',
       hajm_birlik: extendedProducts.find(p => p.id === item.sklad_product_id)?.hajm_birlik || '',
+      // Remove trailing zeros after decimal and format
+      hajm: parseFloat(item.hajm) !== parseInt(item.hajm) ? parseFloat(item.hajm) : parseInt(item.hajm),
     }));
 
     setData(enrichedChiqimlar);

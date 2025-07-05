@@ -38,13 +38,20 @@ export default function MaishiySkladPage() {
         chiqimMap[c.sklad_product_id] = (chiqimMap[c.sklad_product_id] || 0) + +c.hajm;
       });
 
+      // Formatlash funksiyasi: toFixed(3) + ortiqcha 0 larsiz
+      const formatNumber = (num) => {
+        return parseFloat(Number(num).toFixed(3)).toString();
+      };
+
       const finalData = skladRes.data.map(item => {
         const kirimHajm = kirimMap[item.id] || 0;
         const chiqimHajm = chiqimMap[item.id] || 0;
-        const mavjud = item.hajm*1 + kirimHajm*1 - chiqimHajm;
+        const mavjud = item.hajm * 1 + kirimHajm * 1 - chiqimHajm;
+
         return {
           ...item,
-          mavjud
+          hajm: formatNumber(item.hajm),
+          mavjud: formatNumber(mavjud)
         };
       });
 

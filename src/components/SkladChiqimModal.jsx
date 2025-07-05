@@ -27,39 +27,41 @@ export default function SkladKirimModal({ isOpen, onClose, onSave, products = []
   }, [isOpen]);
 
   // ✅ Hajmlar hisoblash: Kirimlar - Chiqimlar
-  const calculateHajmlar = async () => {
-    try {
-      const [productRes, kirimRes, chiqimRes] = await Promise.all([
-        axios.get(`${url}/sklad_product`, authHeader),
-        axios.get(`${url}/sklad_product_taktic`, authHeader),
-        axios.get(`${url}/chiqim_ombor`, authHeader),
-      ]);
+ const calculateHajmlar = async () => {
+  try {
+    const [productRes, kirimRes, chiqimRes] = await Promise.all([
+      axios.get(`${url}/sklad_product`, authHeader),
+      axios.get(`${url}/sklad_product_taktic`, authHeader),
+      axios.get(`${url}/chiqim_ombor`, authHeader),
+    ]);
 
-      const kirimMap = {};
-      kirimRes.data.forEach(k => {
-        const id = Number(k.sklad_product_id);
-        kirimMap[id] = (kirimMap[id] || 0) + Number(k.hajm || 0);
-      });
+    const kirimMap = {};
+    kirimRes.data.forEach(k => {
+      const id = Number(k.sklad_product_id);
+      kirimMap[id] = (kirimMap[id] || 0) + Number(k.hajm || 0);
+    });
 
-      const chiqimMap = {};
-      chiqimRes.data.forEach(c => {
-        const id = Number(c.sklad_product_id);
-        chiqimMap[id] = (chiqimMap[id] || 0) + Number(c.hajm || 0);
-      });
+    const chiqimMap = {};
+    chiqimRes.data.forEach(c => {
+      const id = Number(c.sklad_product_id);
+      chiqimMap[id] = (chiqimMap[id] || 0) + Number(c.hajm || 0);
+    });
 
-      const mavjudMap = {};
-      productRes.data.forEach(p => {
-        const id = Number(p.id);
-        const k = kirimMap[id] || 0;
-        const c = chiqimMap[id] || 0;
-        mavjudMap[id] = k - c;
-      });
+    const mavjudMap = {};
+    productRes.data.forEach(p => {
+      const id = Number(p.id);
+      const boshlangich = Number(p.hajm || 0); // ⬅️ boshlang‘ich hajm
+      const kirim = kirimMap[id] || 0;
+      const chiqim = chiqimMap[id] || 0;
+      mavjudMap[id] = boshlangich + kirim - chiqim;
+    });
 
-      setHajmMap(mavjudMap);
-    } catch (err) {
-      console.error('Mavjud hajmni hisoblashda xatolik:', err);
-    }
-  };
+    setHajmMap(mavjudMap);
+  } catch (err) {
+    console.error('Mavjud hajmni hisoblashda xatolik:', err);
+  }
+};
+
 
   const handleChange = (index, e) => {
     const { name, value } = e.target;

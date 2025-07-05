@@ -11,6 +11,7 @@ export default function SkladProductPage() {
   const [data, setData] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
+  const [searchTerm, setSearchTerm] = useState(''); // Qidiruv holati
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
 
@@ -41,12 +42,16 @@ export default function SkladProductPage() {
       });
 
       const enriched = productRes.data.map(p => {
-        const kirim = kirimMap[p.id]*1 || 0;
+        const kirim = kirimMap[p.id] * 1 || 0;
         const chiqim = chiqimMap[p.id] || 0;
-        const mavjudHajm = (p.hajm || 0)*1 + kirim*1 - chiqim;
+        const mavjudHajm = (p.hajm || 0) * 1 + kirim * 1 - chiqim;
+
+        // To'liq qiymatni 3 kasr raqami bilan formatlash va 0 larni olib tashlash
         return {
           ...p,
-          mavjud_hajm: mavjudHajm
+          hajm: parseFloat(p.hajm || 0), // Hajm qiymatini 3 kasr bilan formatlash
+          mavjud_hajm: parseFloat(mavjudHajm.toFixed(3)), // Mavjud hajmni formatlash
+          hajm_birlik: p.hajm_birlik // Birlikni qo'shish
         };
       });
 
@@ -89,10 +94,25 @@ export default function SkladProductPage() {
     }
   };
 
+  // Qidiruv filtri
+  const filteredData = data.filter((item) =>
+    item.nomi.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <LayoutComponent>
       <div className={styles.headerWrapper}>
         <h2 className={styles.title}>📦 Sklad mahsulotlari</h2>
+
+        {/* Qidiruv inputi */}
+        <input
+          type="text"
+          className={styles.searchInput}
+          placeholder="Mahsulotni qidirish..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+
         <button onClick={() => setModalOpen(true)} className={styles.addButton}>
           ➕ Yangi mahsulot
         </button>
@@ -109,7 +129,11 @@ export default function SkladProductPage() {
           hajm_birlik: 'Birlik',
           created_at: 'Qo‘shilgan sana'
         }}
-        data={data}
+        data={filteredData.map(item => ({
+          ...item,
+          hajm: `${item.hajm} ${item.hajm_birlik}`, // Birlikni qo'shish
+          mavjud_hajm: `${item.mavjud_hajm} ${item.hajm_birlik}` // Birlikni qo'shish
+        }))}
         onDelete={handleDelete}
         onEdit={handleEdit}
       />

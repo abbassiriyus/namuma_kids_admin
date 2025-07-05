@@ -54,6 +54,7 @@ export default function MaishiyKirimPage() {
 
       const enrichedData = kirimRes.data.map(item => ({
         ...item,
+        hajm: item.hajm != null ? parseFloat(item.hajm).toFixed(3).replace(/\.000$/, '').replace(/(\.\d*?)0+$/, '$1') : '',
         product_nomi: productsMap[item.sklad_product_id]?.nomi || 'Noma’lum',
         hajm_birlik: productsMap[item.sklad_product_id]?.hajm_birlik || '',
         summa: (item.hajm || 0) * (item.narx || 0)
@@ -80,6 +81,7 @@ export default function MaishiyKirimPage() {
 
       const enrichedData = kirimRes.data.map(item => ({
         ...item,
+        hajm: item.hajm != null ? parseFloat(item.hajm).toFixed(3).replace(/\.000$/, '').replace(/(\.\d*?)0+$/, '$1') : '',
         product_nomi: productsMap[item.sklad_product_id]?.nomi || 'Noma’lum',
         hajm_birlik: productsMap[item.sklad_product_id]?.hajm_birlik || '',
         summa: (item.hajm || 0) * (item.narx || 0)
@@ -111,9 +113,9 @@ export default function MaishiyKirimPage() {
         await axios.put(`${url}/kirim_maishiy/${editingItem.id}`, form, authHeader);
       } else {
         if (Array.isArray(form)) {
-          await Promise.all(form.map(row => axios.post(`${url}/kirim_maishiy`, row, authHeader)));
+          await Promise.all(form.map(row => axios.post(`${url}/kirim_maishiy/multi`, row, authHeader)));
         } else {
-          await axios.post(`${url}/kirim_maishiy`, form, authHeader);
+          await axios.post(`${url}/kirim_maishiy/multi`, form, authHeader);
         }
       }
       fetchData();

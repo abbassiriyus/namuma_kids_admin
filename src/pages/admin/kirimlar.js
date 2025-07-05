@@ -29,6 +29,7 @@ export default function KirimlarPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [filter, setFilter] = useState({ startDate: '', endDate: '', productId: '' });
+  const [searchQuery, setSearchQuery] = useState("");  // Search query state
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
   const authHeader = { headers: { Authorization: `Bearer ${token}` } };
@@ -42,11 +43,15 @@ export default function KirimlarPage() {
     return takticData.map(item => {
       const narx = Number(item.narx || 0);
       const hajm = Number(item.hajm || 0);
+      const summa = (narx * hajm).toFixed(2);
+
       return {
         ...item,
         product_nomi: productsMap[item.sklad_product_id]?.nomi || 'Noma’lum',
         hajm_birlik: productsMap[item.sklad_product_id]?.hajm_birlik || '',
-        summa: narx * hajm,
+        summa: summa,
+        hajm: parseFloat(item.hajm).toString(),  // Format hajm and narx
+        narx: parseFloat(item.narx).toString(),  
       };
     });
   };
@@ -120,8 +125,13 @@ export default function KirimlarPage() {
     }
   };
 
+  // Search filter function
+  const filteredData = data.filter(item => {
+    return item.product_nomi.toLowerCase().includes(searchQuery.toLowerCase());
+  });
+
   const handleExportToWord = () => {
-    if (!data.length) return alert("Ma'lumot yo‘q");
+    if (!filteredData.length) return alert("Ma'lumot yo‘q");
 
     const headers = ['#', 'Mahsulot', 'Hajm', 'Birlik', 'Narx', 'Umumiy', 'Izoh', 'Vaqti'];
     const columnWidths = [500, 2000, 1000, 1000, 1000, 1500, 3000, 2000];
@@ -149,7 +159,7 @@ export default function KirimlarPage() {
       ),
     });
 
-    const bodyRows = data.map((item, index) =>
+    const bodyRows = filteredData.map((item, index) =>
       new TableRow({
         children: [
           createCell((index + 1).toString(), columnWidths[0]),
@@ -164,14 +174,14 @@ export default function KirimlarPage() {
       })
     );
 
-    const total = data.reduce((acc, cur) => acc + (cur.summa || 0), 0);
+    const total = filteredData.reduce((acc, cur) => acc + (cur.summa || 0), 0);
 
     const totalRow = new TableRow({
       children: [
         createCell('', columnWidths[0]),
         createCell('Jami', columnWidths[1], AlignmentType.RIGHT, true),
         ...Array(3).fill('').map((_, i) => createCell('', columnWidths[2 + i])),
-        createCell(total.toLocaleString() + " so'm", columnWidths[5], AlignmentType.CENTER, true),
+        createCell(parseFloat(total).toFixed(2).toLocaleString() + " so'm", columnWidths[5], AlignmentType.CENTER, true),
         createCell('', columnWidths[6]),
         createCell('', columnWidths[7]),
       ],
@@ -196,15 +206,19 @@ export default function KirimlarPage() {
     });
   };
 
+  // Jami summa hisoblash
+  const totalSum = filteredData.reduce((acc, item) => acc + (parseFloat(item.summa) || 0), 0);
+
   return (
     <LayoutComponent>
       <AdminHeader title="Kirimlar" onCreate={() => setModalOpen(true)} />
+   
       <ChiqimFilter
         filter={{ ...filter, products }}
         onChange={handleFilterChange}
         onSubmit={handleFilterSubmit}
         onExport={handleExportToWord}
-      />
+      />   
       <AdminTable
         title="Mahsulot kirimlari"
         columns={['id', 'product_nomi', 'hajm', 'hajm_birlik', 'narx', 'summa', 'description', 'created_at']}
@@ -218,12 +232,12 @@ export default function KirimlarPage() {
           description: 'Izoh',
           created_at: 'Vaqti'
         }}
-        data={data}
+        data={filteredData}
         onDelete={handleDelete}
         onEdit={handleEdit}
       />
       <div className={styles.totalBox}>
-        Jami summa: {data.reduce((acc, item) => acc + (item.summa || 0), 0).toLocaleString()} so'm
+        Jami summa: {parseFloat(totalSum).toFixed(2).toLocaleString()} so'm
       </div>
       <SkladChiqimModal
         isOpen={modalOpen}

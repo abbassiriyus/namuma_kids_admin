@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import LayoutComponent from "@/components/LayoutComponent";
 import AdminTable from "@/components/AdminTable";
-import ChiqimModal from "@/components/ChiqimModal";
+import MaishiyChiqimModal from "@/components/MaishiyChiqimModal";
 import ChiqimFilter from "@/components/ChiqimFilter";
 import AdminHeader from "@/components/AdminHeader";
 import axios from "axios";
@@ -21,7 +21,6 @@ import {
   ShadingType,
 } from "docx";
 import { saveAs } from "file-saver";
-import styles from "@/styles/ChiqimlarPage.module.css";
 
 export default function MaishiyChiqimPage() {
   const [data, setData] = useState([]);
@@ -47,6 +46,7 @@ export default function MaishiyChiqimPage() {
 
       const enriched = res.data.map(item => ({
         ...item,
+        hajm: item.hajm != null ? parseFloat(item.hajm).toString() : '',
         product_nomi: productMap[item.sklad_product_id]?.nomi || 'Noma’lum',
         hajm_birlik: productMap[item.sklad_product_id]?.hajm_birlik || ''
       }));
@@ -111,6 +111,7 @@ export default function MaishiyChiqimPage() {
 
       const enriched = res.data.map(item => ({
         ...item,
+        hajm: item.hajm != null ? parseFloat(item.hajm).toString() : '',
         product_nomi: productMap[item.sklad_product_id]?.nomi || 'Noma’lum',
         hajm_birlik: productMap[item.sklad_product_id]?.hajm_birlik || ''
       }));
@@ -121,6 +122,10 @@ export default function MaishiyChiqimPage() {
       console.error("Filterda xatolik:", err);
     }
   };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   const handleExportToWord = () => {
     if (!data.length) return alert("Ma'lumot yo‘q");
@@ -218,7 +223,7 @@ export default function MaishiyChiqimPage() {
         onEdit={handleEdit}
       />
 
-      <ChiqimModal
+      <MaishiyChiqimModal
         isOpen={modalOpen}
         onClose={() => {
           setModalOpen(false);

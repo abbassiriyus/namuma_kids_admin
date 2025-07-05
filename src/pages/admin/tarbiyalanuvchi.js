@@ -1,3 +1,4 @@
+// Tarbiyalanuvchilar.jsx
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -70,25 +71,15 @@ export default function Tarbiyalanuvchilar() {
   };
 
   const handleUpdate = async (updatedData) => {
-    try {
-      await axios.put(`${url}/bola/${updatedData.id}`, updatedData, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      });
-      fetchData();
-    } catch (err) {
-      console.error("Update xatolik:", err);
-    }
+    await axios.put(`${url}/bola/${updatedData.id}`, updatedData, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+    });
   };
 
   const handleCreate = async (newData) => {
-    try {
-      await axios.post(`${url}/bola`, newData, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      });
-      fetchData();
-    } catch (err) {
-      console.error("Yaratishda xatolik:", err);
-    }
+    await axios.post(`${url}/bola`, newData, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+    });
   };
 
   const handleDelete = async (id) => {
@@ -104,20 +95,25 @@ export default function Tarbiyalanuvchilar() {
     }
   };
 
-  const handleSave = (formData) => {
-    if (formData.id) {
-      handleUpdate(formData);
-    } else {
-      handleCreate(formData);
+  const handleSave = async (formData) => {
+    try {
+      if (formData.id) {
+        await handleUpdate(formData);
+      } else {
+        await handleCreate(formData);
+      }
+      fetchData();
+      setShowModal(false);
+    } catch (err) {
+      console.error("Xatolik:", err);
+      throw err; // modalda ushlab olish uchun
     }
-    setShowModal(false);
   };
 
   useEffect(() => {
     fetchData();
   }, []);
 
-  // 🔍 Qidiruv funksiyasi barcha ustunlarni qamrab oladi
   const filteredData = data.filter((b) => {
     const groupMatch = selectedGroup ? b.guruh_id_raw === Number(selectedGroup) : true;
     const term = searchTerm.toLowerCase();
@@ -171,7 +167,6 @@ export default function Tarbiyalanuvchilar() {
         }}
       />
 
-      {/* Filter va qidiruv */}
       <div style={{ display: 'flex', gap: '20px', marginBottom: '20px', flexWrap: 'wrap' }}>
         <div style={{ display: 'flex', flexDirection: 'column', minWidth: '200px' }}>
           <label style={{ marginBottom: '6px', fontWeight: '600', color: '#555' }}>Guruh bo‘yicha filter:</label>
