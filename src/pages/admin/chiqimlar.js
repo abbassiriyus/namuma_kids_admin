@@ -29,7 +29,12 @@ export default function ChiqimOmborPage() {
   const [editingItem, setEditingItem] = useState(null);
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
   const authHeader = { headers: { Authorization: `Bearer ${token}` } };
-  const [filter, setFilter] = useState({ startDate: '', endDate: '', productId: '' });
+
+  const [filter, setFilter] = useState({
+    startDate: '',
+    endDate: '',
+    productId: ''
+  });
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
@@ -88,7 +93,6 @@ export default function ChiqimOmborPage() {
       })
     );
 
-
     const table = new Table({
       rows: [headerRow, ...bodyRows],
       width: { size: 10000, type: WidthType.DXA },
@@ -122,10 +126,9 @@ export default function ChiqimOmborPage() {
       chiqimMap[pid] = (chiqimMap[pid] || 0) + Number(item.hajm || 0);
     });
 
-
     const extendedProducts = productsList.map(p => {
       const chiqilgan = chiqimMap[p.id] || 0;
-      const initial = Number(p.hajm || 0); // sklad_product.hajm — boshlang‘ich hajm
+      const initial = Number(p.hajm || 0);
       const available_hajm = initial - chiqilgan;
       return { ...p, available_hajm };
     });
@@ -139,12 +142,29 @@ export default function ChiqimOmborPage() {
       ...item,
       product_nomi: productMap[item.sklad_product_id] || '',
       hajm_birlik: extendedProducts.find(p => p.id === item.sklad_product_id)?.hajm_birlik || '',
-      // Remove trailing zeros after decimal and format
       hajm: parseFloat(item.hajm) !== parseInt(item.hajm) ? parseFloat(item.hajm) : parseInt(item.hajm),
     }));
 
+    // 🔠 Alifbo tartibida saralash
+    enrichedChiqimlar.sort((a, b) =>
+      (a.product_nomi || '').localeCompare(b.product_nomi || '', 'uz', { sensitivity: 'base' })
+    );
+
     setData(enrichedChiqimlar);
     setProducts(extendedProducts);
+  };
+
+  const fetchData = async () => {
+    try {
+      const today = new Date().toISOString().slice(0, 10);
+      const [res, productsRes] = await Promise.all([
+        axios.get(`${url}/chiqim_ombor?start=${today}&end=${today}`, authHeader),
+        axios.get(`${url}/sklad_product`, authHeader),
+      ]);
+      enrichData(res.data, productsRes.data);
+    } catch (err) {
+      console.error('Xatolik:', err);
+    }
   };
 
   const handleFilterSubmit = async () => {
@@ -162,19 +182,6 @@ export default function ChiqimOmborPage() {
       enrichData(res.data, productsRes.data);
     } catch (err) {
       console.error('Filterlashda xatolik:', err);
-    }
-  };
-
-  const fetchData = async () => {
-    try {
-      const [res, productsRes] = await Promise.all([
-        axios.get(`${url}/chiqim_ombor`, authHeader),
-        axios.get(`${url}/sklad_product`, authHeader),
-      ]);
-
-      enrichData(res.data, productsRes.data);
-    } catch (err) {
-      console.error('Xatolik:', err);
     }
   };
 

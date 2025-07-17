@@ -106,13 +106,36 @@ export default function OyliklarPage() {
   return (
     <LayoutComponent>
       <div style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-        <label>Oy tanlang:</label>
-        <input
-          type="month"
-          value={selectedMonth}
-          onChange={(e) => setSelectedMonth(e.target.value)}
-        />
-        <button onClick={fetchAll}>Ko‘rish</button>
+     <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>
+  Oy tanlang:
+</label>
+<input
+  type="month"
+  value={selectedMonth}
+  onChange={(e) => setSelectedMonth(e.target.value)}
+  style={{
+    padding: '8px 12px',
+    fontSize: '16px',
+    borderRadius: '6px',
+    border: '1px solid #ccc',
+    outline: 'none',
+    width: '200px',
+  }}
+/>
+       <button
+  onClick={fetchAll}
+  style={{
+    backgroundColor: '#4CAF50',
+    color: 'white',
+    padding: '10px 20px',
+    border: 'none',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    fontSize: '16px',
+  }}
+>
+  Ko‘rish
+</button>
       </div>
 
       {loading ? (

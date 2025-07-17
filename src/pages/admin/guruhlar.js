@@ -96,7 +96,7 @@ export default function GuruhlarPage() {
   }, []);
 
   const columnTitles = {
-    id: 'ID',
+    // id: 'ID',
     name: 'Guruh nomi',
     xodim_id: 'Tarbiya beruvchi',
     created_at: 'Yaratilgan',

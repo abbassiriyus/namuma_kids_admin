@@ -19,6 +19,7 @@ export default function Dashboard() {
   const [dailyDavomatData, setDailyDavomatData] = useState([]);
   const [groupKPIData, setGroupKPIData] = useState([]);
   const [selectedMonth, setSelectedMonth] = useState(() => (new Date().getMonth() + 1).toString().padStart(2, '0'));
+  const [todayAttendanceStats, setTodayAttendanceStats] = useState({ kelgan: 0, kelmagan: 0 });
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
   const authHeader = { headers: { Authorization: `Bearer ${token}` } };
@@ -39,6 +40,21 @@ export default function Dashboard() {
       setXodimStats({ xodimlar: xodimRes.data.length, guruhlar: guruhRes.data.length });
     } catch (err) {
       console.error("Statistikani olishda xatolik:", err);
+    }
+  };
+
+  const fetchTodayAttendance = async () => {
+    try {
+      const res = await axios.get(`${url}/bola_kun`, authHeader);
+      const todayStr = new Date().toISOString().slice(0, 10);
+      const todayRecords = res.data.filter(item => item.sana?.slice(0, 10) === todayStr);
+
+      const kelgan = todayRecords.filter(item => item.holati === 1).length;
+      const kelmagan = todayRecords.filter(item => item.holati === 2).length;
+
+      setTodayAttendanceStats({ kelgan, kelmagan });
+    } catch (err) {
+      console.error("Bugungi davomatni olishda xatolik:", err);
     }
   };
 
@@ -83,7 +99,13 @@ export default function Dashboard() {
           prichislena: 0,
           naqt_prichislena: 0,
         };
-        return { oy, ...found };
+        const jami =
+    found.naqt +
+    found.karta +
+    found.prichislena +
+    found.naqt_prichislena;
+
+  return { oy, ...found, jami };
       });
 
       setDaromadData(data);
@@ -149,7 +171,7 @@ export default function Dashboard() {
     try {
       const res = await axios.get(`${url}/bola_kun`, authHeader);
       const today = new Date();
-      const month = today.getMonth(); // 0-based
+      const month = today.getMonth();
       const yearNow = today.getFullYear();
 
       const rawData = res.data.filter(item => {
@@ -211,7 +233,7 @@ export default function Dashboard() {
         const holati1 = bolaKuniInMonth.filter(b => b.holati === 1).length;
         const holati2 = bolaKuniInMonth.filter(b => b.holati === 2).length;
         const jami = holati1 + holati2;
-        const kpi = jami > 0 ? ((holati1 / jami) * 10).toFixed(2):0
+        const kpi = jami > 0 ? ((holati1 / jami) * 10).toFixed(2) : 0;
 
         return {
           guruh: guruh.name,
@@ -229,6 +251,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetchStats();
+    fetchTodayAttendance();
     fetchDaromad();
     fetchDarslar();
     fetchDavomatlar();
@@ -246,8 +269,6 @@ export default function Dashboard() {
     holati2: '#FF5722',
     kpi: '#607D8B'
   };
-
-  const chartStyle = { maxWidth: '700px', margin: '0 auto' };
 
   return (
     <LayoutComponent>
@@ -272,8 +293,10 @@ export default function Dashboard() {
           <div className={`${styles.card} ${styles.red}`}><h2>Faol bo‘lmagan bolalar</h2><p>{bolaStats.inactive} ta</p></div>
           <div className={`${styles.card} ${styles.blue}`}><h2>Jami xodimlar</h2><p>{xodimStats.xodimlar} ta</p></div>
           <div className={`${styles.card} ${styles.purple}`}><h2>Jami guruhlar</h2><p>{xodimStats.guruhlar} ta</p></div>
+          <div className={`${styles.card} ${styles.green}`}><h2>Bugun kelgan</h2><p>{todayAttendanceStats.kelgan} ta</p></div>
+          <div className={`${styles.card} ${styles.red}`}><h2>Bugun kelmagan</h2><p>{todayAttendanceStats.kelmagan} ta</p></div>
         </div>
-
+        
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr',marginTop:'30px' }}>
   <div>
       <h2 style={{ marginBottom: '0.5rem' }}>
@@ -314,6 +337,7 @@ export default function Dashboard() {
           <Bar dataKey="karta" name="Karta" fill="#64b5f6" radius={[5, 5, 0, 0]} />
           <Bar dataKey="prichislena" name="O‘tkazma" fill="#ffb74d" radius={[5, 5, 0, 0]} />
           <Bar dataKey="naqt_prichislena" name="Naqd o‘tkazma" fill="#ba68c8" radius={[5, 5, 0, 0]} />
+       <Bar dataKey="jami" name="Jami" fill="#000" radius={[5, 5, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </div>

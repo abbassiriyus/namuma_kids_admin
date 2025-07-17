@@ -129,7 +129,7 @@ export default function MaishiyChiqimModal({ isOpen, onClose, onSave, products =
                   style={{ flex: 1 }}
                 >
                   <option value="">Mahsulot tanlang</option>
-                  {products.map(p => (
+                  {products.sort((a, b) => a.nomi.localeCompare(b.nomi)).map(p => (
                     <option key={p.id} value={p.id}>{p.nomi}</option>
                   ))}
                 </select>

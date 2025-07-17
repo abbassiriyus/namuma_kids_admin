@@ -117,6 +117,9 @@ export default function TolovlarPage() {
         };
       });
 
+      // 🔠 Alifbo tartibida fish bo‘yicha saralash
+      bolalar.sort((a, b) => a.fish.localeCompare(b.fish, 'uz', { sensitivity: 'base' }));
+
       setRows(bolalar);
     } catch (error) {
       console.error('Xatolik:', error);
@@ -241,8 +244,8 @@ export default function TolovlarPage() {
             <h3>Umumiy To‘lovlar</h3>
             <p><strong>Naqt:</strong> {totalSummary.naqt.toLocaleString()} so'm</p>
             <p><strong>Karta:</strong> {totalSummary.karta.toLocaleString()} so'm</p>
-            <p><strong>Bank to`lov:</strong> {totalSummary.prichislena.toLocaleString()} so'm</p>
-            <p><strong>Bank(Naqt) to`lov:</strong> {totalSummary.naqt_prichislena.toLocaleString()} so'm</p>
+            <p><strong>Bank to‘lov:</strong> {totalSummary.prichislena.toLocaleString()} so'm</p>
+            <p><strong>Bank (naqt):</strong> {totalSummary.naqt_prichislena.toLocaleString()} so'm</p>
             <p><strong>Jami to‘langan:</strong> {totalSummary.jami_tolangan.toLocaleString()} so'm</p>
           </div>
         </>

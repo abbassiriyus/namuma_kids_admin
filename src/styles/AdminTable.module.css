@@ -52,12 +52,13 @@
 }
 
 .adminTable__td {
-  padding: 12px;
+  padding: 5px;
   border-bottom: 1px solid #e2e8f0;
   color: #475569;
   font-size: 14px;
   vertical-align: middle;
-  white-space: wrap;
+
+  /* white-space: wrap; */
 }
 
 .editBtn,

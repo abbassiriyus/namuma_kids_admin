@@ -12,7 +12,7 @@ export default function AdminTable({
   onEdit,
   customRenderers = {}  // ✅ Yangi prop: ustunlar uchun maxsus ko‘rinish
 }) {
-  const itemsPerPage = 10;
+  const itemsPerPage = 20;
   const [currentPage, setCurrentPage] = useState(1);
 
   const totalPages = Math.ceil(data.length / itemsPerPage);
@@ -30,22 +30,27 @@ export default function AdminTable({
       <div className={styles.adminTable__wrapper}>
         <table className={styles.adminTable__table}>
           <thead className={styles.adminTable__thead}>
-            <tr>
+            <tr>   <th className={styles.adminTable__th}>Amallar</th>
               <th className={styles.adminTable__th}>№</th>
               {columns.map((col, idx) => (
                 <th key={idx} className={styles.adminTable__th}>
                   {columnTitles[col] || col}
                 </th>
               ))}
-              <th className={styles.adminTable__th}>Amallar</th>
+           
             </tr>
           </thead>
           <tbody className={styles.adminTable__tbody}>
             {currentData.map((row, i) => (
               <tr key={i} className={styles.adminTable__tr}>
+                 <td style={{background:'rgba(0, 255, 255, 0.404)',width:'80px'}} className={styles.adminTable__td}>
+                  <button className={styles.editBtn} onClick={() => onEdit(row)}>✏️</button>
+                  <button className={styles.deleteBtn} onClick={() => onDelete(row.id)}>🗑️</button>
+                </td>
                 <td className={styles.adminTable__td}>
                   {(startIndex + i + 1).toString()}
                 </td>
+
                 {columns.map((col, j) => {
                   // ✅ Custom renderer ishlatilsa, uni chiqarish
                   if (customRenderers[col]) {
@@ -73,10 +78,7 @@ export default function AdminTable({
                     </td>
                   );
                 })}
-                <td className={styles.adminTable__td}>
-                  <button className={styles.editBtn} onClick={() => onEdit(row)}>✏️</button>
-                  <button className={styles.deleteBtn} onClick={() => onDelete(row.id)}>🗑️</button>
-                </td>
+               
               </tr>
             ))}
           </tbody>

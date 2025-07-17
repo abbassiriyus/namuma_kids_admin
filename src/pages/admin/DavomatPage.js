@@ -99,6 +99,11 @@ export default function DavomatPage() {
       }
     }
 
+    // 🔠 Alifbo tartibida username bo‘yicha saralash
+    result = result.sort((a, b) =>
+      a.username.localeCompare(b.username, 'uz', { sensitivity: 'base' })
+    );
+
     setFilteredBolalar(result);
   };
 
@@ -203,10 +208,10 @@ export default function DavomatPage() {
         <table className={styles.table}>
           <thead>
             <tr>
-              <th>№</th>
-              <th>Ism Familiya</th>
+              <th  style={{ textAlign: 'center',position:'sticky',left:'0px',zIndex:2222,top:'0px' }}>№</th>
+              <th style={{position:'sticky',left:'45px',zIndex:222222}}>Ism Familiya</th>
               {darsKunlar.map(d => (
-                <th key={d.id}>{d.sana.slice(8, 10)}</th>
+                <th  key={d.id}>{d.sana.slice(8, 10)}</th>
               ))}
               <th>✅ Bor</th>
               <th>❌ Yo‘q</th>
@@ -224,8 +229,8 @@ export default function DavomatPage() {
 
               return (
                 <tr key={bola.id}>
-                  <td style={{ textAlign: 'center' }}>{index + 1}</td>
-                  <td>{bola.username}</td>
+                  <td style={{ textAlign: 'center',position:'sticky',left:'0px',background:"aqua",zIndex:222 }}>{index + 1}</td>
+                  <td style={{position:'sticky',left:'45px',background:"aqua",zIndex:22222}}>{bola.username}</td>
                   {darsKunlar.map(d => {
                     const entry = davomatlar.find(
                       v => v.bola_id === bola.id && v.darssana_id === d.id
@@ -248,45 +253,44 @@ export default function DavomatPage() {
             })}
           </tbody>
 
-       <tfoot>
-  <tr>
-    <td></td>
-    <td style={{ fontWeight: 'bold' }}>Kun bo‘yicha:</td>
-    {darsKunlar.map(d => {
-      const kunDavomat = davomatlar.filter(
-        v => v.darssana_id === d.id &&
-             filteredBolalar.some(b => b.id === v.bola_id)
-      );
-      const bor = kunDavomat.filter(v => v.holati === 1).length;
-      const yoq = kunDavomat.filter(v => v.holati === 2).length;
+          <tfoot>
+            <tr>
+              <td style={{ fontWeight: 'bold',position:'sticky',zIndex:333,left:'0px',background:'aqua' }}></td>
+              <td style={{ fontWeight: 'bold',position:'sticky',zIndex:333,left:'40px',background:'aqua' }}>Kun bo‘yicha:</td>
+              {darsKunlar.map(d => {
+                const kunDavomat = davomatlar.filter(
+                  v => v.darssana_id === d.id &&
+                       filteredBolalar.some(b => b.id === v.bola_id)
+                );
+                const bor = kunDavomat.filter(v => v.holati === 1).length;
+                const yoq = kunDavomat.filter(v => v.holati === 2).length;
 
-      return (
-        <td key={d.id} style={{ fontSize: '12px', lineHeight: '14px', textAlign: 'center' }}>
-          ✅ {bor}<br />❌ {yoq}
-        </td>
-      );
-    })}
-    <td style={{ fontWeight: 'bold', color: '#166534' }}>
-      {
-        davomatlar.filter(
-          v => v.holati === 1 &&
-               filteredBolalar.some(b => b.id === v.bola_id) &&
-               darsKunlar.some(d => d.id === v.darssana_id)
-        ).length
-      }
-    </td>
-    <td style={{ fontWeight: 'bold', color: '#991b1b' }}>
-      {
-        davomatlar.filter(
-          v => v.holati === 2 &&
-               filteredBolalar.some(b => b.id === v.bola_id) &&
-               darsKunlar.some(d => d.id === v.darssana_id)
-        ).length
-      }
-    </td>
-  </tr>
-</tfoot>
-
+                return (
+                  <td key={d.id} style={{ fontSize: '12px', lineHeight: '14px', textAlign: 'center' }}>
+                    ✅ {bor}<br />❌ {yoq}
+                  </td>
+                );
+              })}
+              <td style={{ fontWeight: 'bold', color: '#166534' }}>
+                {
+                  davomatlar.filter(
+                    v => v.holati === 1 &&
+                         filteredBolalar.some(b => b.id === v.bola_id) &&
+                         darsKunlar.some(d => d.id === v.darssana_id)
+                  ).length
+                }
+              </td>
+              <td style={{ fontWeight: 'bold', color: '#991b1b' }}>
+                {
+                  davomatlar.filter(
+                    v => v.holati === 2 &&
+                         filteredBolalar.some(b => b.id === v.bola_id) &&
+                         darsKunlar.some(d => d.id === v.darssana_id)
+                  ).length
+                }
+              </td>
+            </tr>
+          </tfoot>
         </table>
       </div>
 

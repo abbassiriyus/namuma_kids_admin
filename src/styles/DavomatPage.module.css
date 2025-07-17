@@ -209,7 +209,7 @@
 .tableWrapper {
   overflow-x: auto;
   overflow-y: auto;
-  max-height: 70vh;
+  max-height: 88vh;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
 }
@@ -234,7 +234,7 @@
   background-color: #f1f5f9;
   position: sticky;
   top: 0;
-  z-index: 1;
+  z-index: 99999;
 }
 
 .table tr:nth-child(even) {
@@ -349,4 +349,23 @@
   background-color: #007bff;
   color: white;
   border-color: #007bff;
+}
+/* DavomatPage.module.css */
+.selectStage {
+  padding: 6px 10px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background-color: #fff;
+  color: #333;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.selectStage:hover {
+  border-color: #999;
+}
+
+.selectStage:focus {
+  border-color: #0070f3;
 }

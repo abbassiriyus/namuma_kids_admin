@@ -26,8 +26,10 @@ export default function Login() {
       if (token) {
         localStorage.setItem('token', token);
         localStorage.setItem('type', type);
+        localStorage.setItem('admin', JSON.stringify(admin));
 
-        if (type === 1) {
+
+        if (type === 1 || type===3) {
           router.push('/admin/dashboard');
         } else if (type === 2) {
           router.push('/tarbiyachi/davomat');
