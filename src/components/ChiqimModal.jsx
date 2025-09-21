@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react';
-import styles from '@/styles/BolaModal.module.css';
+import styles from '../styles/BolaModal.module.css';
 import axios from 'axios';
-import url from '@/host/host';
+import url from '../host/host';
 
 export default function ChiqimModal({ isOpen, onClose, onSave, products = [], initialData = null }) {
   const [rows, setRows] = useState([{ sklad_product_id: '', hajm: '', description: '' }]);
   const [chiqimSana, setChiqimSana] = useState('');
   const [availableHajm, setAvailableHajm] = useState({}); // product_id => hajm
 
-  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+  const token = localStorage.getItem('token') ? localStorage.getItem('token') : null;
   const authHeader = { headers: { Authorization: `Bearer ${token}` } };
 
   useEffect(() => {
@@ -27,80 +27,106 @@ export default function ChiqimModal({ isOpen, onClose, onSave, products = [], in
     }
   }, [isOpen]);
 
-  const calculateAvailableHajm = async () => {
-    try {
-      const [productsRes, kirimRes, chiqimRes] = await Promise.all([
-        axios.get(`${url}/sklad_product`, authHeader),
-        axios.get(`${url}/sklad_product_taktic`, authHeader),
-        axios.get(`${url}/chiqim_ombor`, authHeader),
-      ]);
+ const calculateAvailableHajm = async () => {
+  try {
+    const [productsRes, kirimRes, chiqimRes] = await Promise.all([
+      axios.get(`${url}/sklad_product`, authHeader),
+      axios.get(`${url}/sklad_product_taktic`, authHeader),
+      axios.get(`${url}/chiqim_ombor`, authHeader),
+    ]);
 
-      const productList = productsRes.data;
-      const kirimlar = kirimRes.data;
-      const chiqimlar = chiqimRes.data;
+    console.log('Products:', productsRes.data);
+    console.log('Kirimlar:', kirimRes.data);
+    console.log('Chiqimlar:', chiqimRes.data);
 
-      const kirimMap = {};
-      kirimlar.forEach(k => {
-        const id = Number(k.sklad_product_id);
-        kirimMap[id] = (kirimMap[id] || 0) + Number(k.hajm || 0);
-      });
+    const productList = productsRes.data;
+    const kirimlar = kirimRes.data;
+    const chiqimlar = chiqimRes.data;
 
-      const chiqimMap = {};
-      chiqimlar.forEach(c => {
-        const id = Number(c.sklad_product_id);
-        chiqimMap[id] = (chiqimMap[id] || 0) + Number(c.hajm || 0);
-      });
+    const kirimMap = {};
+    kirimlar.forEach((k) => {
+      const id = Number(k.sklad_product_id);
+      kirimMap[id] = (kirimMap[id] || 0) + Number(k.hajm || 0);
+    });
 
-      const availableMap = {};
-      productList.forEach(p => {
-        const id = Number(p.id);
-        const boshlangich = Number(p.hajm || 0);
-        const kirim = kirimMap[id] || 0;
-        const chiqim = chiqimMap[id] || 0;
-        availableMap[id] = boshlangich + kirim - chiqim;
-      });
+    const chiqimMap = {};
+    chiqimlar.forEach((c) => {
+      const id = Number(c.sklad_product_id);
+      chiqimMap[id] = (chiqimMap[id] || 0) + Number(c.hajm || 0);
+    });
 
-      setAvailableHajm(availableMap);
-    } catch (err) {
-      console.error('Mavjud hajmni hisoblashda xatolik:', err);
+    const availableMap = {};
+    productList.forEach((p) => {
+      const id = Number(p.id);
+      const boshlangich = Number(p.hajm || 0);
+      const kirim = kirimMap[id] || 0;
+      const chiqim = chiqimMap[id] || 0;
+      availableMap[id] = boshlangich + kirim - chiqim;
+    });
+
+    console.log('Available Hajm:', availableMap);
+    setAvailableHajm(availableMap);
+  } catch (err) {
+    console.error('Mavjud hajmni hisoblashda xatolik:', err);
+  }
+};
+
+const handleChange = (index, e) => {
+  const { name, value } = e.target;
+  const updatedRows = [...rows];
+  updatedRows[index][name] = name === 'sklad_product_id' ? value : value; // String sifatida saqlaymiz
+  setRows(updatedRows);
+};
+const handleSubmit = () => {
+  if (!chiqimSana) {
+    return alert("❌ Sana tanlanmagan");
+  }
+
+  // Faqat to‘ldirilgan qatorlarni olish
+  const validRows = rows.filter(
+    (row) => row.sklad_product_id && parseFloat(row.hajm) > 0
+  );
+
+  if (validRows.length === 0) {
+    return alert("❌ Kamida bitta to‘ldirilgan qator bo‘lishi kerak");
+  }
+
+  for (let i = 0; i < validRows.length; i++) {
+    const row = validRows[i];
+    const entered = parseFloat(row.hajm);
+    const productId = Number(row.sklad_product_id);
+    const max = availableHajm[productId] || 0;
+
+    if (!productId || isNaN(productId)) {
+      return alert(`❌ ${i + 1}-qator: Mahsulot tanlanmagan`);
     }
-  };
 
-  const handleChange = (index, e) => {
-    const { name, value } = e.target;
-    const updatedRows = [...rows];
-    updatedRows[index][name] = value;
-    setRows(updatedRows);
-  };
-
-  const handleSubmit = () => {
-    if (!chiqimSana) return alert("❌ Sana tanlanmagan");
-
-    for (let i = 0; i < rows.length; i++) {
-      const row = rows[i];
-      const entered = parseFloat(row.hajm || '0');
-      const max = availableHajm[row.sklad_product_id] || 0;
-
-      if (entered > max) {
-        return alert(`❌ ${i + 1}-qator: Omborda faqat ${max} birlik mavjud`);
-      }
+    if (entered <= 0 || isNaN(entered)) {
+      return alert(`❌ ${i + 1}-qator: Hajm noto‘g‘ri yoki kiritilmagan`);
     }
 
-    // ✅ Sana ustiga 1 kun qo‘shamiz
-    const sanaWithOffset = new Date(chiqimSana);
-    sanaWithOffset.setDate(sanaWithOffset.getDate() + 1);
-    const formattedSana = sanaWithOffset.toISOString().slice(0, 10);
+    if (entered > max) {
+      return alert(`❌ ${i + 1}-qator: Omborda faqat ${max} birlik mavjud`);
+    }
+  }
 
-    const payload = rows.map(r => ({
-      ...r,
-      chiqim_sana: formattedSana,
-    }));
+  // Sana ustiga 1 kun qo‘shamiz
+  const sanaWithOffset = new Date(chiqimSana);
+  sanaWithOffset.setDate(sanaWithOffset.getDate() + 1);
+  const formattedSana = sanaWithOffset.toISOString().slice(0, 10);
 
-    onSave(payload.length === 1 && initialData ? payload[0] : payload);
-    onClose();
-    setRows([{ sklad_product_id: '', hajm: '', description: '' }]);
-  };
+  const payload = validRows.map((r) => ({
+    ...r,
+    sklad_product_id: Number(r.sklad_product_id),
+    hajm: Number(r.hajm),
+    chiqim_sana: formattedSana,
+  }));
+console.log(payload);
 
+  onSave(payload);
+  onClose();
+  setRows([{ sklad_product_id: '', hajm: '', description: '' }]);
+};
   if (!isOpen) return null;
 
   return (

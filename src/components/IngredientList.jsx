@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import url from '@/host/host';
+import url from '../host/host';
 import { Plus, Trash2 } from 'lucide-react';
-import IngredientModal from '@/components/IngredientModal';
-import styles from '@/styles/IngredientList.module.css';
+import IngredientModal from '../components/IngredientModal';
+import styles from '../styles/IngredientList.module.css';
 import UseTaomModal from './UseTaomModal';
 
 export default function IngredientList({ taomId }) {

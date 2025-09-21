@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import styles from '@/styles/BolaModal.module.css';
+import styles from '../styles/BolaModal.module.css';
 import axios from 'axios';
-import url from '@/host/host';
+import url from '../host/host';
 
 export default function DaromatDeleteModal({ open, onClose, bolaId, month, onDeleted }) {
   const [items, setItems] = useState([]);

@@ -200,7 +200,7 @@
   padding: 8px;
   border: 1px solid #ccc;
   border-radius: 6px;
-  width: 100%;
+  width: 97%;
   margin-bottom: 8px;
   font-size: 14px;
 }
@@ -227,4 +227,55 @@
   border: none;
   cursor: pointer;
   font-size: 18px;
+}
+@media (max-width: 768px) {
+  .modal__content,
+  .modalContent {
+    width: 80%;
+    padding: 16px;
+    border-radius: 10px;
+  }
+
+  .modal__title {
+    font-size: 18px;
+  }
+
+  .modal__form input,
+  .modal__form select,
+  .modal__form textarea,
+  .modalContent input {
+    font-size: 14px;
+    padding: 8px;
+  }
+
+  .modal__form button,
+  .modal__buttons button,
+  .modalContent li button {
+    font-size: 13px;
+    padding: 6px 12px;
+  }
+
+  .modal__buttons {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .modal__info {
+    font-size: 0.8rem;
+  }
+
+  .modalContent {
+    padding: 16px;
+    width: 90%;
+  }
+
+  .modalContent ul {
+    margin-top: 8px;
+  }
+
+  .modalContent li {
+    font-size: 14px;
+    padding: 8px;
+  }
 }

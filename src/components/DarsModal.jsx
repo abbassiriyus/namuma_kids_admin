@@ -2,7 +2,7 @@
 "use client";
 
 import React from 'react';
-import styles from '@/styles/BolaModal.module.css';
+import styles from '../styles/BolaModal.module.css';
 
 export default function DarsModal({ sana, mavzu, setSana, setMavzu, isEdit, onSave, onClose }) {
   return (

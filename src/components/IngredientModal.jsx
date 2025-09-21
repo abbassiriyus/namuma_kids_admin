@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import url from '@/host/host';
-import styles from '@/styles/BolaModal.module.css';
+import url from '../host/host';
+import styles from '../styles/BolaModal.module.css';
 
 export default function IngredientModal({ open, setOpen, taomId, onSaved, ingredient }) {
   const [formData, setFormData] = useState({

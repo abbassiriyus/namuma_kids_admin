@@ -1,8 +1,8 @@
 "use client";
 import { useState } from "react";
-import styles from "@/styles/BolaModal.module.css";
+import styles from "../styles/BolaModal.module.css";
 import axios from "axios";
-import url from "@/host/host";
+import url from "../host/host";
 
 export default function OylikEditModal({ open, onClose, xodim, onSaved }) {
   const [bonus, setBonus] = useState('');

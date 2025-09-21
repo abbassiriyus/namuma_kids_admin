@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import axios from "axios";
-import url from "@/host/host";
-import styles from "@/styles/BolaModal.module.css"; // IngredientModal asosidagi style
+import url from "../host/host";
+import styles from "../styles/BolaModal.module.css"; // IngredientModal asosidagi style
 
 export default function UseTaomModal({ open, setOpen, taomId, onSaved }) {
     const [sana, setSana] = useState("");

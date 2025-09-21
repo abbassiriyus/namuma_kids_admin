@@ -17,6 +17,10 @@ const nextConfig = {
         source: '/oneproduct/:id',
         destination: '/oneproduct/[id]',
       },
+        {
+        source: '/uploads/:path*',
+        destination: 'https://fre.abbas.uz/upload/:path*', // Proxy
+      },
     ];
   },
   output: 'export',

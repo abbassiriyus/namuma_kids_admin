@@ -1,0 +1,334 @@
+/* Container for the entire component */
+.wrapper {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Controls section (month selector and export buttons) */
+.controls {
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.label {
+  font-weight: bold;
+  font-size: 16px;
+  color: #333;
+}
+
+.monthSelect {
+  padding: 6px 12px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #fff;
+  color: #333;
+}
+
+.monthSelect:disabled {
+  background: #f0f0f0;
+  cursor: not-allowed;
+}
+
+.exportBtn, .exportTomorrowBtn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.3s, transform 0.2s;
+}
+
+.exportBtn {
+  background: #3498db;
+}
+
+.exportBtn:hover:not(:disabled) {
+  background: #2980b9;
+  transform: translateY(-2px);
+}
+
+.exportTomorrowBtn {
+  background: #2ecc71;
+}
+
+.exportTomorrowBtn:hover:not(:disabled) {
+  background: #27ae60;
+  transform: translateY(-2px);
+}
+
+.exportBtn:disabled, .exportTomorrowBtn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+/* Title */
+.title {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 20px;
+  text-align: center;
+  color: #333;
+}
+
+/* Loading message */
+.loading {
+  padding: 10px;
+  text-align: center;
+  font-size: 16px;
+  color: #666;
+}
+
+/* Table container for horizontal scrolling */
+.tableContainer {
+  overflow-x: auto;
+  max-width: 100%;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Table styles */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  font-size: 14px;
+}
+
+.table__head {
+  background: #f5f6fa;
+}
+
+.table__cell {
+  padding: 12px;
+  text-align: center;
+  border: 1px solid #e0e0e0;
+  white-space: nowrap;
+  font-size: 14px;
+  color: #333;
+}
+
+.sticky {
+  position: sticky;
+  left: 0;
+  background: #fff;
+  z-index: 2;
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+}
+
+.table__head .table__cell {
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+/* Red background for active workday */
+.redBackground {
+  background: #ffe6e6;
+}
+
+/* Buttons for marking attendance */
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+}
+
+.kelBtn, .ketBtn {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  margin: 1px;
+  cursor: pointer;
+  transition: background 0.3s, transform 0.2s;
+  width: 100%;
+  max-width: 120px;
+  text-align: center;
+}
+
+.kelBtn {
+  background: #27ae60;
+  color: #fff;
+}
+
+.kelBtn:hover:not(:disabled) {
+  background: #219653;
+  transform: translateY(-2px);
+}
+
+.ketBtn {
+  background: #e74c3c;
+  color: #fff;
+}
+
+.ketBtn:hover:not(:disabled) {
+  background: #c0392b;
+  transform: translateY(-2px);
+}
+
+/* .kelBtn:disabled, .ketBtn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+} */
+
+/* Time display */
+.time {
+  font-size: 12px;
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+/* Icon for non-attendance */
+.icon {
+  font-size: 16px;
+  color: #e74c3c;
+}
+
+/* Modal styles */
+.modal {
+  top: 50%;
+  left: 50%;
+  right: auto;
+  bottom: auto;
+  margin-right: -50%;
+  transform: translate(-50%, -50%);
+  padding: 15px;
+  border-radius: 8px;
+  max-width: 400px;
+  width: 90%;
+  background: #fff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.overlay {
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 99;
+}
+
+.modalContent {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.modalContent h3 {
+  margin: 0 0 10px;
+  font-size: 18px;
+  text-align: center;
+  color: #333;
+}
+
+.modalItem {
+  margin-bottom: 8px;
+  color: #333;
+}
+
+.modalItem strong {
+  display: inline-block;
+  width: 120px;
+}
+
+.modalCloseBtn {
+  display: block;
+  margin: 15px auto 0;
+  padding: 8px 16px;
+  background: #3498db;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.3s;
+}
+
+.modalCloseBtn:hover {
+  background: #2980b9;
+}
+
+/* No permission message */
+.noPermission {
+  padding: 20px;
+  color: #e74c3c;
+  font-size: 16px;
+  text-align: center;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .wrapper {
+    padding: 10px;
+  }
+
+  .controls {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .monthSelect, .exportBtn, .exportTomorrowBtn {
+    width: 100%;
+    max-width: 300px;
+  }
+
+  .table {
+    font-size: 12px;
+  }
+
+  .table__cell {
+    padding: 8px;
+  }
+
+  .kelBtn, .ketBtn {
+    font-size: 10px;
+    padding: 6px 8px;
+    max-width: 100px;
+  }
+
+  .time {
+    font-size: 10px;
+  }
+
+  .modal {
+    width: 95%;
+    padding: 10px;
+  }
+
+  .modalContent h3 {
+    font-size: 16px;
+  }
+
+  .modalItem {
+    font-size: 12px;
+  }
+
+  .modalCloseBtn {
+    font-size: 12px;
+    padding: 6px 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .title {
+    font-size: 20px;
+  }
+
+  .table__cell {
+    padding: 6px;
+    font-size: 10px;
+  }
+
+  .kelBtn, .ketBtn {
+    font-size: 9px;
+    padding: 5px 6px;
+    max-width: 80px;
+  }
+
+  .time {
+    font-size: 9px;
+  }
+}

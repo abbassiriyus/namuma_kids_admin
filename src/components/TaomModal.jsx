@@ -2,9 +2,9 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import styles from '@/styles/BolaModal.module.css';
+import styles from '../styles/BolaModal.module.css';
 import axios from 'axios';
-import url from '@/host/host';
+import url from '../host/host';
 
 export default function TaomModal({ open, setOpen, taom, onSaved }) {
   const [formData, setFormData] = useState(taom || {});

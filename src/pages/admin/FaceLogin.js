@@ -4,7 +4,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import Webcam from 'react-webcam';
 import * as faceapi from 'face-api.js';
 import axios from 'axios';
-import url from '@/host/host';
+import url from '../../host/host';
 
 export default function FaceLogin() {
   const webcamRef = useRef();

@@ -2,14 +2,14 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import LayoutComponent from '@/components/LayoutComponent';
+import LayoutComponent from '../../components/LayoutComponent';
 import axios from 'axios';
-import url from '@/host/host';
+import url from '../../host/host';
 import { Plus, Trash2, Pencil } from 'lucide-react';
-import TaomModal from '@/components/TaomModal';
-import IngredientList from '@/components/IngredientList';
-import AdminHeader from '@/components/AdminHeader';
-import styles from '@/styles/TaomnomaPage.module.css'
+import TaomModal from '../../components/TaomModal';
+import IngredientList from '../../components/IngredientList';
+import AdminHeader from '../../components/AdminHeader';
+import styles from '../../styles/TaomnomaPage.module.css'
 export default function TaomnomaPage() {
   const [taomlar, setTaomlar] = useState([]);
   const [selectedTaom, setSelectedTaom] = useState(null);

@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import url from '@/host/host';
+import url from '../../host/host';
 
 export default function DavomatBugungi() {
   const [adminId, setAdminId] = useState(null);
@@ -10,13 +10,20 @@ export default function DavomatBugungi() {
   const [bolalar, setBolalar] = useState([]);
   const [davomatlar, setDavomatlar] = useState([]);
   const [dars, setDars] = useState(null);
+  const [token, setToken] = useState(null);
 
-  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-  const authHeader = { headers: { Authorization: `Bearer ${token}` } };
-  const today = new Date().toISOString().slice(0, 10);
+ const [today, setToday] = useState("");
 
+useEffect(() => {
+  setToday(new Date().toISOString().slice(0, 10));
+}, []);
+
+  // localStorage faqat clientda o'qiladi
   useEffect(() => {
     if (typeof window !== 'undefined') {
+      const t = localStorage.getItem('token');
+      setToken(t);
+
       const adminData = JSON.parse(localStorage.getItem('admin'));
       if (adminData?.id) {
         setAdminId(adminData.id);
@@ -24,8 +31,10 @@ export default function DavomatBugungi() {
     }
   }, []);
 
+  const authHeader = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+
   const fetchGuruhlar = async () => {
-    if (!adminId) return;
+    if (!adminId || !token) return;
     const res = await axios.get(`${url}/group-admin?admin_id=${adminId}`, authHeader);
     const guruhIds = res.data.map(item => item.group_id);
 
@@ -39,6 +48,8 @@ export default function DavomatBugungi() {
   };
 
   const fetchData = async () => {
+    if (!selectedGuruhId || !token) return;
+
     const bolaRes = await axios.get(`${url}/bola?is_active=true`, authHeader);
     const filteredBolalar = bolaRes.data.filter(b => b.guruh_id == selectedGuruhId);
     setBolalar(filteredBolalar);
@@ -52,19 +63,19 @@ export default function DavomatBugungi() {
   };
 
   useEffect(() => {
-    if (adminId) {
+    if (adminId && token) {
       fetchGuruhlar();
     }
-  }, [adminId]);
+  }, [adminId, token]);
 
   useEffect(() => {
-    if (selectedGuruhId) {
+    if (selectedGuruhId && token) {
       fetchData();
     }
-  }, [selectedGuruhId]);
+  }, [selectedGuruhId, token]);
 
   const handleChange = async (bola, holati) => {
-    if (!dars) return;
+    if (!dars || !token) return;
 
     const existing = davomatlar.find(
       d => d.bola_id === bola.id && d.darssana_id === dars.id

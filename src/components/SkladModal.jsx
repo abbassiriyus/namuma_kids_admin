@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import styles from '@/styles/BolaModal.module.css'; // qayta ishlatamiz
+import styles from '../styles/BolaModal.module.css'; // qayta ishlatamiz
 
 export default function SkladModal({ isOpen, onClose, onSave, initialData }) {
   const [formData, setFormData] = useState({

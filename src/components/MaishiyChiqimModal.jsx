@@ -1,16 +1,30 @@
 import { useEffect, useState } from 'react';
-import styles from '@/styles/BolaModal.module.css';
+import styles from '../styles/BolaModal.module.css';
 import axios from 'axios';
-import url from '@/host/host';
+import url from '../host/host';
 
-export default function MaishiyChiqimModal({ isOpen, onClose, onSave, products = [], initialData = null }) {
+export default function ChiqimModal({ isOpen, onClose, onSave, products = [], initialData = null }) {
   const [rows, setRows] = useState([{ sklad_product_id: '', hajm: '', description: '' }]);
   const [chiqimSana, setChiqimSana] = useState('');
-  const [availableHajm, setAvailableHajm] = useState({});
-
-  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+  const [availableHajm, setAvailableHajm] = useState({}); // product_id => hajm
+const [groupOptions, setGroupOptions] = useState([]);
+  const token = localStorage.getItem('token') ? localStorage.getItem('token') : null;
   const authHeader = { headers: { Authorization: `Bearer ${token}` } };
+useEffect(() => {
+  if (!isOpen) return;
 
+  // Guruhlarni yuklash
+  axios
+    .get(`${url}/guruh`, authHeader)
+    .then(res => {
+      setGroupOptions(res.data); // ⚠️ res.data massiv bo‘lishi kerak
+    })
+    .catch(err => {
+      console.error("Guruhlar yuklashda xatolik:", err);
+    });
+
+  calculateAvailableHajm();
+}, [isOpen]);
   useEffect(() => {
     if (initialData) {
       setRows([{ ...initialData }]);
@@ -23,38 +37,44 @@ export default function MaishiyChiqimModal({ isOpen, onClose, onSave, products =
 
   useEffect(() => {
     if (isOpen) {
-      fetchAvailableStock();
+      calculateAvailableHajm(); // Modal ochilganda hisobla
     }
   }, [isOpen]);
 
-  const fetchAvailableStock = async () => {
+  const calculateAvailableHajm = async () => {
     try {
-      const [skladRes, kirimRes, chiqimRes] = await Promise.all([
+      const [productsRes, kirimRes, chiqimRes] = await Promise.all([
         axios.get(`${url}/sklad_maishiy`, authHeader),
         axios.get(`${url}/kirim_maishiy`, authHeader),
         axios.get(`${url}/chiqim_maishiy`, authHeader),
       ]);
 
+      const productList = productsRes.data;
+      const kirimlar = kirimRes.data;
+      const chiqimlar = chiqimRes.data;
+
       const kirimMap = {};
-      kirimRes.data.forEach(k => {
-        kirimMap[k.sklad_product_id] = (kirimMap[k.sklad_product_id] || 0) + parseFloat(k.hajm || 0);
+      kirimlar.forEach(k => {
+        const id = Number(k.sklad_product_id);
+        kirimMap[id] = (kirimMap[id] || 0) + Number(k.hajm || 0);
       });
 
       const chiqimMap = {};
-      chiqimRes.data.forEach(c => {
-        chiqimMap[c.sklad_product_id] = (chiqimMap[c.sklad_product_id] || 0) + parseFloat(c.hajm || 0);
+      chiqimlar.forEach(c => {
+        const id = Number(c.sklad_product_id);
+        chiqimMap[id] = (chiqimMap[id] || 0) + Number(c.hajm || 0);
       });
 
-      const available = {};
-      skladRes.data.forEach(p => {
-        const id = p.id;
-        const boshlangich = parseFloat(p.hajm || 0);
+      const availableMap = {};
+      productList.forEach(p => {
+        const id = Number(p.id);
+        const boshlangich = Number(p.hajm || 0);
         const kirim = kirimMap[id] || 0;
         const chiqim = chiqimMap[id] || 0;
-        available[id] = boshlangich + kirim - chiqim;
+        availableMap[id] = boshlangich + kirim - chiqim;
       });
 
-      setAvailableHajm(available);
+      setAvailableHajm(availableMap);
     } catch (err) {
       console.error('Mavjud hajmni hisoblashda xatolik:', err);
     }
@@ -80,13 +100,14 @@ export default function MaishiyChiqimModal({ isOpen, onClose, onSave, products =
       }
     }
 
+    // ✅ Sana ustiga 1 kun qo‘shamiz
     const sanaWithOffset = new Date(chiqimSana);
     sanaWithOffset.setDate(sanaWithOffset.getDate() + 1);
     const formattedSana = sanaWithOffset.toISOString().slice(0, 10);
 
     const payload = rows.map(r => ({
       ...r,
-      chiqim_sana: formattedSana
+      chiqim_sana: formattedSana,
     }));
 
     onSave(payload.length === 1 && initialData ? payload[0] : payload);
@@ -113,8 +134,6 @@ export default function MaishiyChiqimModal({ isOpen, onClose, onSave, products =
 
         {rows.map((row, index) => {
           const productId = Number(row.sklad_product_id);
-          console.log(products);
-          
           const product = products.find(p => Number(p.id) === productId);
           const mavjud = availableHajm[productId];
 
@@ -162,14 +181,46 @@ export default function MaishiyChiqimModal({ isOpen, onClose, onSave, products =
                 )}
               </div>
 
-              <textarea
-                name="description"
-                value={row.description}
-                onChange={(e) => handleChange(index, e)}
-                placeholder="Izoh"
-                className={styles.textarea}
-                style={{ marginTop: '8px', width: '96%' }}
-              />
+{/* Izoh / Guruh tanlash */}
+<label style={{ marginTop: '8px' }}>Izoh (guruh):</label>
+<select
+  name="description"
+  value={row.description.startsWith('custom:') ? 'other' : row.description}
+  onChange={(e) => {
+    const val = e.target.value;
+    const updatedRows = [...rows];
+    updatedRows[index].description = val === 'other' ? 'B:' : val;
+    setRows(updatedRows);
+  }}
+  className={styles.input}
+  style={{ width: '96%' }}
+>
+  <option value="">Guruh tanlang</option>
+  {groupOptions.map((group) => (
+    <option key={group.id} value={group.name}>{group.name}</option>
+  ))}
+  <option value="Ko`cha">Ko`cha</option>
+  <option value="Oshxona">Oshxona</option>
+  <option value="Karidor">Karidor</option>
+
+  <option value="other">➕ Boshqa...</option>
+</select>
+
+{/* Agar "➕ Boshqa..." tanlansa, input ochiladi */}
+{row.description.startsWith('custom:') && (
+  <input
+    type="text"
+    placeholder="Qo‘shimcha izoh kiriting"
+    className={styles.input}
+    style={{ width: '96%', marginTop: '5px' }}
+    value={row.description.replace('custom:', '')}
+    onChange={(e) => {
+      const updatedRows = [...rows];
+      updatedRows[index].description = 'custom:' + e.target.value;
+      setRows(updatedRows);
+    }}
+  />
+)}
 
               {mavjud !== undefined && (
                 <p style={{ marginTop: '4px', color: 'gray' }}>

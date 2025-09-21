@@ -1,0 +1,282 @@
+/* Kontentni o'rab turuvchi asosiy konteyner */
+.container {
+  padding: 20px; /* Ichki chetki masofa */
+  background: linear-gradient(135deg, #f9f9fb, #e6e6f0); /* Gradient fon */
+  border-radius: 12px; /* Yumaloq burchaklar */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Zamonaviy soya */
+  max-width: 1200px; /* Maksimal kenglik */
+  margin: 0 auto; /* Markazlash */
+}
+
+/* Asosiy sarlavha (h1) stillari */
+.container h1 {
+  font-size: 22px; /* Optimal shrift o'lchami */
+  color: #1a1a1a; /* To'q qora matn */
+  margin-bottom: 12px; /* Pastki masofa */
+  font-weight: 700; /* Qalin shrift */
+  text-align: center; /* Markazlash */
+}
+
+/* Ikkinchi darajali sarlavha (h2) stillari */
+.container h2 {
+  font-size: 16px; /* Kichikroq shrift */
+  color: #4b4b4b; /* Yumshoq kulrang */
+  margin-bottom: 18px; /* Pastki masofa */
+  font-weight: 500; /* O'rtacha qalinlik */
+}
+
+/* Jadval stillari */
+.table {
+  width: 100%; /* To'liq kenglik */
+  border-collapse: separate; /* Yumaloq burchaklar uchun */
+  border-spacing: 0; /* Yacheykalar orasidagi masofa yo'q */
+  background: white; /* Oq fon */
+  border-radius: 10px; /* Yumaloq burchaklar */
+  overflow: hidden; /* Chegaralardan tashqari chiqishni oldini oladi */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08); /* Engil soya */
+}
+
+/* Jadval sarlavhalari (thead) */
+.table thead {
+  background: linear-gradient(90deg, #4f46e5, #7c3aed); /* Gradient indigo fon */
+  color: white; /* Oq matn */
+}
+
+/* Jadval sarlavhalari va yacheykalar uchun umumiy stillar */
+.table th,
+.table td {
+  padding: 10px 12px; /* Optimal ichki masofa */
+  text-align: left; /* Matn chapga tekislanadi */
+  font-size: 13px; /* Kichikroq shrift */
+  border-bottom: 1px solid #e5e7eb; /* Engil chiziq */
+}
+
+/* Birinchi va oxirgi yacheykalar uchun yumaloq burchaklar */
+.table th:first-child,
+.table td:first-child {
+  border-top-left-radius: 10px;
+  border-bottom-left-radius: 10px;
+}
+
+.table th:last-child,
+.table td:last-child {
+  border-top-right-radius: 10px;
+  border-bottom-right-radius: 10px;
+}
+
+/* Kayfiyat ustuni uchun maxsus stil */
+.table td[data-label="Kayfiyat"] {
+  font-size: 18px; /* Optimal stiker o'lchami */
+  text-align: center; /* Markazlash */
+  transition: transform 0.3s ease, box-shadow 0.3s ease; /* Animatsiya */
+}
+
+.table td[data-label="Kayfiyat"]:hover {
+  transform: scale(1.2); /* Sichqoncha kelganda kattalashadi */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15); /* Soya qo'shiladi */
+}
+
+/* Jadval qatorlari */
+.table tbody tr {
+  transition: background 0.2s ease, transform 0.2s ease; /* Yumshoq animatsiya */
+}
+
+.table tbody tr:hover {
+  background: #f1f5f9; /* Och kulrang fon */
+  transform: translateY(-2px); /* Biroz ko'tariladi */
+}
+
+/* Amallar (tugmalar) konteyneri */
+.actions {
+  display: flex; /* Gorizontal joylashuv */
+  gap: 8px; /* Tugmalar orasidagi masofa */
+  justify-content: center; /* Markazlash */
+}
+
+/* Umumiy tugma stillari */
+.btn {
+  padding: 6px 12px; /* Kichikroq ichki masofa */
+  border: none; /* Chegara yo'q */
+  border-radius: 6px; /* Yumaloq burchaklar */
+  cursor: pointer; /* Sichqoncha kursor ko'rinishi */
+  font-weight: 600; /* Qalin shrift */
+  font-size: 12px; /* Kichik shrift */
+  transition: all 0.3s ease; /* Animatsiya */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Engil soya */
+}
+
+/* Yashil tugma stillari */
+.btnGreen {
+  background: #22c55e; /* Yashil fon */
+  color: white; /* Oq matn */
+}
+
+.btnGreen:hover {
+  background: #16a34a; /* Qoramtir yashil */
+  transform: translateY(-2px); /* Ko'tariladi */
+  box-shadow: 0 4px 8px rgba(34, 197, 94, 0.3); /* Kuchliroq soya */
+}
+
+/* Qizil tugma stillari */
+.btnRed {
+  background: #ef4444; /* Qizil fon */
+  color: white; /* Oq matn */
+}
+
+.btnRed:hover {
+  background: #dc2626; /* Qoramtir qizil */
+  transform: translateY(-2px); /* Ko'tariladi */
+  box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3); /* Kuchliroq soya */
+}
+
+/* Faolsiz tugma stillari */
+.btn:disabled {
+  opacity: 0.6; /* Shaffoflik */
+  cursor: not-allowed; /* Faolsiz kursor */
+  transform: none; /* Animatsiya o'chiriladi */
+}
+
+/* Media so'rovlari */
+
+/* Mobil qurilmalar uchun (maksimal kenglik 768px) */
+@media (max-width: 768px) {
+  .container {
+    padding: 12px; /* Kichikroq ichki masofa */
+    margin: 10px; /* Chetki masofa */
+  }
+
+  .container h1 {
+    font-size: 18px; /* Kichikroq sarlavha */
+  }
+
+  .container h2 {
+    font-size: 14px; /* Kichikroq ikkinchi sarlavha */
+    margin-bottom: 15px; /* Kichikroq masofa */
+  }
+
+  .table {
+    font-size: 11px; /* Kichikroq shrift */
+  }
+
+  .table th,
+  .table td {
+    padding: 8px 10px; /* Kichikroq ichki masofa */
+    font-size: 11px; /* Kichikroq shrift */
+  }
+
+  /* Kayfiyat ustuni mobil ekranlarda */
+  .table td[data-label="Kayfiyat"] {
+    font-size: 16px; /* Kichikroq stiker */
+  }
+
+  /* Tugmalar */
+  .actions {
+    gap: 6px; /* Kichikroq masofa */
+    flex-wrap: wrap; /* Agar joy yetmasa, pastga tushadi */
+  }
+
+  .btn {
+    padding: 5px 8px; /* Kichikroq ichki masofa */
+    font-size: 10px; /* Kichikroq shrift */
+    border-radius: 5px; /* Kichikroq burchaklar */
+  }
+}
+
+/* Planshetlar uchun (kenglik 769px dan 1024px gacha) */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .container {
+    padding: 15px; /* O'rta ichki masofa */
+    margin: 15px; /* Chetki masofa */
+  }
+
+  .container h1 {
+    font-size: 20px; /* O'rta sarlavha */
+  }
+
+  .container h2 {
+    font-size: 15px; /* O'rta ikkinchi sarlavha */
+  }
+
+  .table th,
+  .table td {
+    padding: 9px 11px; /* O'rta ichki masofa */
+    font-size: 12px; /* O'rta shrift */
+  }
+
+  /* Kayfiyat ustuni planshetlarda */
+  .table td[data-label="Kayfiyat"] {
+    font-size: 17px; /* O'rta stiker o'lchami */
+  }
+
+  .btn {
+    padding: 6px 10px; /* O'rta tugma o'lchami */
+    font-size: 11px; /* O'rta shrift */
+  }
+
+  .actions {
+    gap: 7px; /* Tugmalar orasidagi masofa */
+  }
+}
+
+/* Katta ekranlar uchun (1024px dan yuqori) */
+@media (min-width: 1025px) {
+  .container {
+    padding: 25px; /* Katta ichki masofa */
+  }
+
+  .table th,
+  .table td {
+    padding: 12px 14px; /* Kattaroq ichki masofa */
+  }
+
+  .table td[data-label="Kayfiyat"] {
+    font-size: 20px; /* Kattaroq stiker */
+  }
+}
+
+
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modalContent {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  width: 400px;
+  max-width: 90%;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.modalBody {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.modalBody label {
+  font-weight: bold;
+}
+
+.modalBody select {
+  padding: 8px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.modalActions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}

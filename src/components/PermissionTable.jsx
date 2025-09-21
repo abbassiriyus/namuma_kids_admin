@@ -1,6 +1,6 @@
 'use client';
 
-import styles from '@/styles/Adminlar.module.css';
+import styles from '../styles/Adminlar.module.css';
 
 const MODULES = {
   admins: 'Adminlar',

@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import styles from "@/styles/BolaModal.module.css";
+import styles from "../styles/BolaModal.module.css";
 import axios from "axios";
-import url from "@/host/host";
+import url from "../host/host";
 
 export default function OylikDeleteModal({ open, onClose, xodim, selectedMonth, onSaved }) {
   const [bonus, setBonus] = useState([]);

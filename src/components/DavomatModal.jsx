@@ -1,5 +1,5 @@
 'use client';
-import styles from '@/styles/Modal.module.css';
+import styles from '../styles/Modal.module.css';
 
 export default function DavomatModal({ onClose, onSelect, bola, sana }) {
   return (

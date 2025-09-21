@@ -1,0 +1,72 @@
+.container {
+  padding: 20px;
+}
+
+.title {
+  font-size: 22px;
+  font-weight: bold;
+  margin-bottom: 15px;
+  color: #222;
+}
+
+.filterPanel {
+  background: #f9fafb;
+  padding: 15px;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
+
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.searchInput {
+  border: 1px solid #d1d5db;
+  padding: 8px 12px;
+  border-radius: 6px;
+  width: 190px;
+  transition: 0.2s ease-in-out;
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37,99,235,0.2);
+}
+
+.selectBox {
+  border: 1px solid #d1d5db;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: white;
+  transition: 0.2s;
+}
+
+.selectBox:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37,99,235,0.2);
+  outline: none;
+}
+
+.dateInput {
+  border: 1px solid #d1d5db;
+  padding: 8px 12px;
+  border-radius: 6px;
+}
+
+.clearBtn {
+  background: #ef4444;
+  color: white;
+  padding: 8px 14px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: 0.2s ease-in-out;
+}
+
+.clearBtn:hover {
+  background: #dc2626;
+}

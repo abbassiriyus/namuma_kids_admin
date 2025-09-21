@@ -1,6 +1,6 @@
 // components/ChiqimFilter.js
 import React from 'react';
-import styles from '@/styles/ChiqimFilter.module.css';
+import styles from '../styles/ChiqimFilter.module.css';
 
 export default function ChiqimFilter({ filter, onChange, onSubmit, onExport, onSearch }) {
   return (

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import styles from '@/styles/BolaModal.module.css';
+import styles from '../styles/BolaModal.module.css';
 
 export default function QoshimchaModal({ isOpen, onClose, onSave, initialData }) {
   const [form, setForm] = useState({ price: '', description: '' });

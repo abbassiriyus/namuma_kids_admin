@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import styles from '@/styles/BolaModal.module.css';
+import styles from '../styles/BolaModal.module.css';
 
 export default function GuruhModal({ guruh, onClose, onSave, xodimlar = [] }) {
   const [formData, setFormData] = useState(guruh || {});

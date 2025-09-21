@@ -45,6 +45,7 @@
 
 .adminTable__tr {
   transition: background 0.2s ease-in-out;
+  height: 38px;
 }
 
 .adminTable__tr:hover {
@@ -118,10 +119,210 @@
 }
 
 .pagination button:hover {
-  background-color: #e2e8f0;
+  background-color: #75a0d8;
 }
 
 .pagination span {
   font-weight: 500;
   color: #334155;
+}
+
+
+/* Jadval asosiy konteyneri */
+.admin-table {
+  width: 100%;
+  overflow-x: auto;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.admin-table__wrapper {
+  border-radius: 12px;
+  overflow-x: auto;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.admin-table__table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #fff;
+}
+
+.admin-table__thead {
+  background-color: #f3f4f6;
+}
+
+.admin-table__th,
+.admin-table__td {
+  padding: 1px 6px;
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.admin-table__tr:hover {
+  background-color: #f9fafb;
+}
+
+/* Amallar ustuni */
+.admin-table__actions {
+  display: flex;
+  gap: 8px;
+}
+
+.admin-table__btn {
+  padding: 6px 10px;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+}
+
+.admin-table__btn--edit {
+  background-color: #facc15;
+  color: #000;
+}
+
+.admin-table__btn--edit:hover {
+  background-color: #eab308;
+}
+
+.admin-table__btn--delete {
+  background-color: #f87171;
+  color: white;
+}
+
+.admin-table__btn--delete:hover {
+  background-color: #ef4444;
+}
+
+/* Pagination */
+.pagination {
+  margin-top: 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+}
+
+.pagination button {
+  padding: 6px 12px;
+  font-size: 14px;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.pagination button:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+}
+
+/* Modal */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.modal__content {
+  background-color: #ffffff;
+  border-radius: 12px;
+  max-width: 600px;
+  width: 90%;
+  padding: 24px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.modal__header {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #111827;
+}
+
+.modal__table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.modal__table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 14px;
+  color: #374151;
+}
+
+.modal__close-btn {
+  margin-top: 20px;
+  padding: 10px 16px;
+  background-color: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  float: right;
+}
+
+.modal__close-btn:hover {
+  background-color: #dc2626;
+}
+
+/* Animatsiya */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+.admin-table__th,
+.admin-table__th.sticky-actions,
+.admin-table__td.sticky-actions {
+  position: sticky;
+  left: 0;
+  background-color: rgba(0, 255, 255);
+  z-index: 2; /* Below thead but above other cells */
+  min-width: 85px;
+    text-wrap: nowrap;
+}
+.admin-table__th,
+.admin-table__th.sticky-index,
+.admin-table__td.sticky-index {
+  position: sticky;
+  left: 85px; /* After actions column */
+  background-color: #fff;
+  z-index: 2;
+  min-width: 50px;
+    text-wrap: nowrap;
+}
+.admin-table__th,
+.admin-table__th.sticky-fish,
+.admin-table__td.sticky-fish {
+  text-wrap: nowrap;
+  position: sticky;
+  left: 100px; /* After actions and index columns */
+  background-color: #fff;
+  z-index: 2;
+  min-width: 150px;
+}
+
+.admin-table__th.sticky-actions,
+.admin-table__th.sticky-index,
+.admin-table__th.sticky-fish {
+  z-index: 4; /* Ensure sticky headers are above sticky cells */
 }
